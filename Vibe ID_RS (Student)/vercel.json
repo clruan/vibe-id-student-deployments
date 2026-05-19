@@ -1,9 +1,8 @@
 {
-  "redirects": [
+  "rewrites": [
     {
       "source": "/",
-      "destination": "/AI_Resume_V4_Ruihang/",
-      "permanent": false
+      "destination": "/AI_Resume_V4_Ruihang/index.html"
     }
   ]
 }
