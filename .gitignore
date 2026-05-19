@@ -1,0 +1,16 @@
+# Keep this repository focused on the two Vercel deploy roots.
+/*
+
+!/Vibe ID_AL (student)/
+!/Vibe ID_RS (Student)/
+!/README.md
+!/.gitignore
+
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+node_modules/
+.vscode/
+~$*

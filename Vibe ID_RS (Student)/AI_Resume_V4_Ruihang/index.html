@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruihang Shen | Marketing Specialist Resume</title>
+  <meta name="description" content="Interactive resume for Ruihang Shen — Marketing Specialist candidate with multi-brand campaign execution, paid-media analytics, KOL/content strategy, and AI-assisted marketing-research project work.">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <!-- Three.js background canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Sidebar skill dock for later pages -->
+  <aside id="skill-panels" class="skill-panels">
+  </aside>
+
+  <!-- Page container -->
+  <div id="page-container" class="page-container">
+
+    <!-- PAGE 1: Hero / Identity -->
+    <section class="page-section" id="page-1" data-page="1">
+      <div class="page-1-flow">
+        <div class="page-inner page-1-inner">
+          <div class="hero-identity">
+            <div class="hero-photo" id="photo-placeholder">
+              <img src="../User_data/Ruihang Shen/1777085001887.jpg" alt="Ruihang Shen portrait">
+            </div>
+            <div class="hero-text">
+              <h1 id="hero-name"></h1>
+              <p class="hero-positioning" id="hero-positioning"></p>
+              <p class="hero-summary" id="hero-summary"></p>
+              <div class="hero-contact" id="hero-contact"></div>
+            </div>
+          </div>
+        </div>
+
+        <section class="what-bring" id="what-bring">
+          <h2>What I Bring</h2>
+          <div class="what-bring-grid" id="what-bring-grid"></div>
+        </section>
+
+        <section class="intro-skills" id="intro-skills">
+          <div class="intro-skills-grid">
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- PAGE 2: Experience -->
+    <section class="page-section" id="page-2" data-page="2">
+      <div class="page-inner page-2-inner">
+        <div class="page-2-content">
+          <section class="exp-section">
+            <h2>Experience</h2>
+            <div id="experience-list"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: Selected AI Projects -->
+    <section class="page-section" id="page-3" data-page="3">
+      <div class="page-inner page-3-inner">
+        <div class="page-3-content">
+          <section class="projects-section">
+            <h2>Selected AI Projects</h2>
+            <p class="section-subtitle">Click any project's <strong>Click to learn more</strong> badge to open the full project story.</p>
+            <div id="projects-accordion"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: Education, Coursework & Independent Projects, Awards -->
+    <section class="page-section" id="page-4" data-page="4">
+      <div class="page-inner page-4-inner">
+        <section class="edu-section">
+          <h2>Education</h2>
+          <div id="education-list"></div>
+        </section>
+        <section class="coursework-section">
+          <h2>Coursework &amp; Independent Projects</h2>
+          <div id="coursework-list"></div>
+        </section>
+        <section class="cta-section" id="cta-section"></section>
+      </div>
+    </section>
+  </div>
+
+  <!-- Page navigation dots -->
+  <nav class="page-nav" id="page-nav">
+    <button class="page-dot text-dot active" data-target="1" aria-label="Intro"><span>Intro</span></button>
+    <button class="page-dot text-dot" data-target="2" aria-label="Experience"><span>Experience</span></button>
+    <button class="page-dot text-dot" data-target="3" aria-label="Projects"><span>Projects</span></button>
+    <button class="page-dot text-dot" data-target="4" aria-label="Details"><span>Details</span></button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+  <script src="assets/content.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/three-bg.js"></script>
+  <script src="assets/js/pages.js"></script>
+  <script src="assets/js/skills.js"></script>
+  <script src="assets/js/projects.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

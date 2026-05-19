@@ -1,0 +1,11 @@
+{
+  "name": "vibe-id-al",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local workspace for vibe-coding the Vibe ID interactive resume page.",
+  "scripts": {
+    "dev": "node scripts/serve.js",
+    "dev:root": "node scripts/serve.js .",
+    "check": "node scripts/check-js.js"
+  }
+}

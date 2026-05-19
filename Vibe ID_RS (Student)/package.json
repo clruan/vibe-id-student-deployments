@@ -1,0 +1,10 @@
+{
+  "name": "vibe-id-rs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workspace wrapper for the Vibe ID / interactive resume page.",
+  "scripts": {
+    "dev": "npm --prefix AI_Resume_V4_Ruihang run dev",
+    "start": "npm --prefix AI_Resume_V4_Ruihang start"
+  }
+}
