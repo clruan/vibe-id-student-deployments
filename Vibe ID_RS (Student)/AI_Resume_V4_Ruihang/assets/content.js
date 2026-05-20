@@ -13,50 +13,6 @@ window.resumeContent = {
     resume: "../User_data/Ruihang Shen/Ruihang Shen_Resume.pdf"
   },
 
-  documents: {
-    resume: "../User_data/Ruihang Shen/Ruihang Shen_Resume.pdf"
-  },
-
-  directory: {
-    role: "Marketing strategy, consumer insights, and digital content systems",
-    summary: "Single-profile Web ID for a marketing candidate who connects consumer research, content execution, campaign analytics, and AI-assisted strategy workflows.",
-    highlights: [
-      "Consumer insight",
-      "Campaign execution",
-      "AI-assisted research"
-    ]
-  },
-
-  ui: {
-    programEyebrow: "Vibe ID User V3",
-    programBrandCopy: "Single-profile interactive resume for marketing strategy, campaign systems, and AI-assisted research workflows.",
-    programShellNote: "A User V3-style view focused on one candidate: profile, selected results, projects, and source artifacts without a job-function switcher.",
-    resultsTitle: "Selected Results"
-  },
-
-  results: [
-    {
-      value: "1.5M",
-      label: "daily UV supported",
-      note: "JD.com content systems supported high-volume e-commerce traffic through refresh planning and campaign optimization."
-    },
-    {
-      value: "38%",
-      label: "campaign CTR",
-      note: "Lunar New Year Stock-Up campaign used category rotations and high-traffic placements to drive measurable engagement."
-    },
-    {
-      value: "114 + 7",
-      label: "research inputs",
-      note: "The BRIEF Lab project translated 114 survey responses and 7 interviews into launch segments and positioning."
-    },
-    {
-      value: "30+",
-      label: "paid-media placements",
-      note: "PHD Media analysis compared placements across campaigns and brands to identify targeting and inventory optimizations."
-    }
-  ],
-
   whatIBring: [
     {
       title: "Insight-driven strategy",

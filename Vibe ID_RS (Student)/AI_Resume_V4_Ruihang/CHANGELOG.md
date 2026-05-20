@@ -53,7 +53,7 @@
 ### Architecture — from single-page to multi-page scroll
 
 - Replaced the single-page resume sheet layout with a three-page scroll-driven design where each page emphasizes one theme.
-- **Page 1 (Hero):** Name, summary, contact, photo placeholder, and Selected Results. Skill panels appear at the bottom of the viewport.
+- **Page 1 (Hero):** Name, summary, contact, and photo. Skill panels appear at the bottom of the viewport.
 - **Page 2 (Experience & Projects):** Full work experience list and AI project accordion. Skill panels fly to the left sidebar.
 - **Page 3 (Credentials):** Education, Awards, Publications, and Peer Evaluations. Skill panels remain in the sidebar.
 
