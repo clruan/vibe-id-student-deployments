@@ -38,13 +38,11 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${host}:${port}`);
   const decodedPath = decodeURIComponent(url.pathname);
 
-  if (decodedPath === "/" && rootArg === ".") {
-    res.writeHead(302, { Location: `/${defaultPage}/` });
-    res.end();
-    return;
-  }
+  const requestPath = decodedPath === "/" && rootArg === "."
+    ? `/${defaultPage}/index.html`
+    : decodedPath;
 
-  let filePath = path.resolve(root, `.${decodedPath}`);
+  let filePath = path.resolve(root, `.${requestPath}`);
 
   if (!isInside(filePath, root)) {
     send(res, 403, "Forbidden", { "Content-Type": "text/plain; charset=utf-8" });

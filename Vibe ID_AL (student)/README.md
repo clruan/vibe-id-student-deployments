@@ -14,7 +14,7 @@ Open:
 http://127.0.0.1:5173/
 ```
 
-The root URL redirects to `AI_Resume_V4_Arron/`. The server serves the whole workspace so page assets can load from `User_data/`.
+The root URL serves `AI_Resume_V4_Arron/index.html`. The server serves the whole workspace so page assets can load from `User_data/`.
 
 ## Useful Commands
 

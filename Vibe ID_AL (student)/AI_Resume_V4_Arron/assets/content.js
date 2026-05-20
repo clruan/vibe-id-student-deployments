@@ -12,6 +12,50 @@ window.resumeContent = {
     resume: "../User_data/Aaron Li/Aaron_Li_Resume.pdf"
   },
 
+  documents: {
+    resume: "../User_data/Aaron Li/Aaron_Li_Resume.pdf"
+  },
+
+  directory: {
+    role: "Investment analysis, market research, and AI-assisted finance workflows",
+    summary: "Single-profile Web ID for an analyst candidate who combines company research, valuation support, market monitoring, and source-backed AI workflow design.",
+    highlights: [
+      "Financial statement review",
+      "Market signal synthesis",
+      "Evidence-backed research"
+    ]
+  },
+
+  ui: {
+    programEyebrow: "Vibe ID User V3",
+    programBrandCopy: "Single-profile interactive resume for finance research, analyst-style project evidence, and AI-assisted workflow delivery.",
+    programShellNote: "A User V3-style view focused on one candidate: profile, selected results, projects, and source artifacts without a job-function switcher.",
+    resultsTitle: "Selected Results"
+  },
+
+  results: [
+    {
+      value: "6",
+      label: "M&A targets screened",
+      note: "JPMorgan Chase Forage simulation compared six acquisition targets for Asian-market expansion."
+    },
+    {
+      value: "3-year",
+      label: "credit-spreading model",
+      note: "Mapped issuer financials into a standardized Excel credit review with leverage, coverage, liquidity, and cash-flow metrics."
+    },
+    {
+      value: "30s",
+      label: "ticker-brief target",
+      note: "Market Pulse Copilot targets a fast first-pass brief across price context, catalysts, technicals, and funds-flow signals."
+    },
+    {
+      value: "H1-H6",
+      label: "research hypotheses",
+      note: "Research Agent workflow tracks evidence, counterevidence, confidence, and implications for junior IB work."
+    }
+  ],
+
   quantToolkit: [
     { label: "Company Analysis", relatedProjects: [], relatedExp: ["exp-0", "exp-1"] },
     { label: "Financial Statement Analysis", relatedProjects: [], relatedExp: ["exp-0"] },

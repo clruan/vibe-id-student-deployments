@@ -3,6 +3,10 @@
   const data = window.resumeContent;
   const state = ns.state.create(data);
 
+  if (ns.shell && ns.shell.render) {
+    ns.shell.render(data, state);
+  }
+
   /* ── Render all static sections ────────────── */
   ns.pages.renderPage1(data);
   ns.pages.renderExperience(data, {

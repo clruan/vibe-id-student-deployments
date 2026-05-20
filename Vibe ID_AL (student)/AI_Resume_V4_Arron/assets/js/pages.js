@@ -38,6 +38,35 @@
     if (p.resume) parts.push(contactItem("resume", "Resume PDF", p.resume));
     if (p.website) parts.push(contactItem("website", "Website", p.website));
     document.getElementById("hero-contact").innerHTML = parts.join("");
+
+    renderResults(data);
+  }
+
+  function renderResults(data) {
+    var results = Array.isArray(data.results) ? data.results : [];
+    var title = document.getElementById("results-title");
+    var grid = document.getElementById("results-grid");
+    var shell = document.getElementById("hero-results");
+    if (!grid || !shell) return;
+
+    if (!results.length) {
+      shell.style.display = "none";
+      return;
+    }
+
+    shell.style.display = "";
+    if (title) {
+      title.textContent = data.ui && data.ui.resultsTitle ? data.ui.resultsTitle : "Selected Results";
+    }
+    grid.innerHTML = results
+      .map(function (result) {
+        return '<article class="result-card">' +
+          '<p class="result-value">' + result.value + '</p>' +
+          '<p class="result-label">' + result.label + '</p>' +
+          '<p class="result-note">' + result.note + '</p>' +
+        '</article>';
+      })
+      .join("");
   }
 
   /* ── Page 2: Experience ────────────────────── */

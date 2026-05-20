@@ -2,7 +2,8 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const root = path.resolve(__dirname, "..");
+const projectRoot = path.resolve(__dirname, "..");
+const root = path.resolve(projectRoot, "..");
 const preferredPort = Number(process.env.PORT || 5173);
 
 const mimeTypes = {
@@ -16,7 +17,11 @@ const mimeTypes = {
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
-  ".ico": "image/x-icon"
+  ".ico": "image/x-icon",
+  ".pdf": "application/pdf",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 };
 
 function sendFile(res, filePath) {
@@ -37,11 +42,10 @@ function sendFile(res, filePath) {
 const server = http.createServer((req, res) => {
   const host = req.headers.host || "localhost";
   const requestedPath = decodeURIComponent(new URL(req.url, `http://${host}`).pathname);
-  const cleanPath = requestedPath === "/" ? "/index.html" : requestedPath;
-  const baseRoot = cleanPath.startsWith("/User_data/") ? path.resolve(root, "..") : root;
-  const filePath = path.resolve(baseRoot, `.${cleanPath}`);
+  const cleanPath = requestedPath === "/" ? "/AI_Resume_V4_Ruihang/index.html" : requestedPath;
+  const filePath = path.resolve(root, `.${cleanPath}`);
 
-  if (!isInside(filePath, baseRoot)) {
+  if (!isInside(filePath, root)) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Forbidden");
     return;
