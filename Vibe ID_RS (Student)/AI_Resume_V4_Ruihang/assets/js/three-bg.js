@@ -2,6 +2,12 @@
   const ns = window.aiResume || (window.aiResume = {});
 
   const canvas = document.getElementById("bg-canvas");
+  if (!canvas || !window.THREE) {
+    ns.setScrollProgress = function () {};
+    ns.threeBg = null;
+    return;
+  }
+
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);

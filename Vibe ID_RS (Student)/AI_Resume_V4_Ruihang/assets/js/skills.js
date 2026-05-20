@@ -38,31 +38,6 @@
   }
 
   function renderIntroPanels(data) {
-    var introGrid = document.querySelector(".intro-skills-grid");
-    var introGroups = data.introSkillGroups || [];
-
-    if (!introGrid) return;
-
-    if (introGroups.length) {
-      introGrid.innerHTML = introGroups
-        .map(function (group) {
-          return (
-            '<div class="skill-panel">' +
-              "<h3>" + group.title + "</h3>" +
-              '<div class="quant-grid">' +
-                group.items
-                  .map(function (label) {
-                    return renderQuantTag({ label: label }, false);
-                  })
-                  .join("") +
-              "</div>" +
-            "</div>"
-          );
-        })
-        .join("");
-      return;
-    }
-
     var introQuant = getContainer("quant", "intro");
     var introStack = getContainer("stack", "intro");
 
@@ -75,38 +50,21 @@
       .join("");
 
     introStack.innerHTML = data.stack
-      .filter(function (tech) { return !tech.projectOnly; })
       .map(function (tech) {
         return ns.icons.renderTechChip(tech, false);
       })
       .join("");
   }
 
-  function renderStaticSkillGroups(container, groups) {
-    if (!container || !groups || !groups.length) return;
-
-    container.innerHTML = groups
-      .map(function (group) {
-        return (
-          '<div class="skill-panel">' +
-            "<h3>" + group.title + "</h3>" +
-            '<div class="quant-grid">' +
-              group.items
-                .map(function (label) {
-                  return renderQuantTag({ label: label }, false);
-                })
-                .join("") +
-            "</div>" +
-          "</div>"
-        );
-      })
-      .join("");
-  }
-
   function clearSidebarPanels() {
-    var root = getSkillRoot();
+    var sidebarQuant = getContainer("quant", "sidebar");
+    var sidebarStack = getContainer("stack", "sidebar");
 
-    if (root) root.innerHTML = "";
+    if (sidebarQuant) sidebarQuant.innerHTML = "";
+    if (sidebarStack) sidebarStack.innerHTML = "";
+
+    setPanelEmpty(sidebarQuant, true);
+    setPanelEmpty(sidebarStack, true);
     setSidebarVisibility(false);
     lastSidebarSignature = "";
   }
@@ -213,31 +171,6 @@
   }
 
   function renderSidebarPanels(data, state, options) {
-    var sidebarRoot = getSkillRoot();
-    var introGroups = data.introSkillGroups || [];
-
-    if (sidebarRoot && introGroups.length) {
-      if (introTransitionActive || introBurstInProgress || (state.currentPage || 1) === 1) {
-        setSidebarVisibility(false);
-        return;
-      }
-
-      var staticSignature = "intro-groups::" + introGroups
-        .map(function (group) {
-          return group.title + ":" + group.items.join("|");
-        })
-        .join("::");
-
-      if (staticSignature !== lastSidebarSignature || (options && options.force)) {
-        renderStaticSkillGroups(sidebarRoot, introGroups);
-        lastSidebarSignature = staticSignature;
-        animateSidebarEntry(Array.from(sidebarRoot.querySelectorAll(".quant-tag")));
-      }
-
-      setSidebarVisibility(true);
-      return;
-    }
-
     var sidebarQuant = getContainer("quant", "sidebar");
     var sidebarStack = getContainer("stack", "sidebar");
 

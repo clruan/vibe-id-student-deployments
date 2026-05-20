@@ -3,25 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mingxuan (Aaron) Li | IB Analyst Resume</title>
-  <meta name="description" content="Interactive resume for Mingxuan (Aaron) Li — Investment Banking Analyst candidate with company-screen, DCF, M&amp;A, and AI-assisted research project work.">
+  <title>Aaron Li | Vibe ID User V3</title>
+  <meta name="description" content="User V3 Web ID for Aaron Li with finance experience, Market Pulse Copilot, Research Agent, and source artifacts.">
   <base href="/AI_Resume_V4_Arron/">
-  <link rel="stylesheet" href="assets/styles.css?v=no-initial-icons-20260514">
+  <link rel="stylesheet" href="assets/styles.css">
 </head>
-<body>
+<body class="mode-standard">
   <!-- Three.js background canvas -->
   <canvas id="bg-canvas"></canvas>
 
+  <header class="program-header" id="program-header"></header>
+
   <!-- Sidebar skill dock for later pages -->
   <aside id="skill-panels" class="skill-panels">
-    <div class="skill-panel">
-      <h3>Relevant Skills</h3>
-      <p class="skill-panel-subtitle">Based on selected experience</p>
-      <div class="quant-grid" data-skill-group="quant" data-skill-slot="sidebar"></div>
+    <div class="mode-sidebar-banner vip-only" aria-hidden="true">
+      <span class="mode-sidebar-banner-mark">VIP</span>
+      <span class="mode-sidebar-banner-copy">Endorsements unlocked</span>
     </div>
     <div class="skill-panel">
-      <h3>Tools &amp; Outputs</h3>
+      <h3>Technical Stack</h3>
       <div class="tag-list" data-skill-group="stack" data-skill-slot="sidebar"></div>
+    </div>
+    <div class="skill-panel">
+      <h3>Quantitative Toolkit</h3>
+      <div class="quant-grid" data-skill-group="quant" data-skill-slot="sidebar"></div>
     </div>
   </aside>
 
@@ -32,33 +37,61 @@
     <section class="page-section" id="page-1" data-page="1">
       <div class="page-1-flow">
         <div class="page-inner page-1-inner">
+          <section class="program-shell" aria-labelledby="program-shell-title">
+            <div class="program-shell-copy">
+              <p class="eyebrow">Job variants</p>
+              <h2 id="program-shell-title">Pick a target role</h2>
+              <p class="program-shell-note">Same base CV, re-angled for every track. Current target: <strong id="program-active-title"></strong>.</p>
+            </div>
+            <div class="candidate-directory" id="candidate-directory"></div>
+          </section>
           <div class="hero-identity">
-            <div class="hero-photo" id="photo-placeholder">
+            <div class="photo-placeholder" id="photo-placeholder">
               <img src="../User_data/Aaron Li/1775700440236.jpg" alt="Mingxuan (Aaron) Li portrait">
             </div>
             <div class="hero-text">
-              <h1 id="hero-name"></h1>
+              <div class="hero-title-row">
+                <h1 id="hero-name"></h1>
+                <div class="vip-badge vip-only" aria-hidden="true">
+                  <span class="vip-badge-top">VIP</span>
+                  <span class="vip-badge-bottom">Access</span>
+                </div>
+              </div>
               <p class="hero-summary" id="hero-summary"></p>
               <div class="hero-contact" id="hero-contact"></div>
             </div>
           </div>
+          <div class="hero-results">
+            <h2 id="results-title">Results re-weighted for this role</h2>
+            <div class="results-grid" id="results-grid"></div>
+          </div>
+          <section class="mode-card" aria-labelledby="mode-card-title">
+            <div class="mode-card-copy">
+              <p class="eyebrow">Viewing Mode</p>
+              <h2 id="mode-card-title">Toggle endorsements</h2>
+              <p class="mode-card-note" id="mode-card-note">Endorsement mode reveals the per-role callouts behind the metrics and projects.</p>
+            </div>
+            <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false">
+              <span class="mode-toggle-track" aria-hidden="true">
+                <span class="mode-toggle-thumb"></span>
+              </span>
+              <span class="mode-toggle-text">
+                <span class="mode-toggle-label" id="mode-toggle-label">Standard mode</span>
+                <span class="mode-toggle-subtitle" id="mode-toggle-subtitle">Turn on endorsements</span>
+              </span>
+            </button>
+          </section>
         </div>
 
         <section class="intro-skills" id="intro-skills">
           <div class="intro-skills-grid">
             <div class="skill-panel">
-              <h3>Investment Analysis Toolkit</h3>
+              <h3>Quantitative Toolkit</h3>
               <div class="quant-grid" data-skill-group="quant" data-skill-slot="intro"></div>
             </div>
-            <div class="intro-skills-right-column">
-              <div class="skill-panel">
-                <h3>Tools &amp; Technical Skills</h3>
-                <div class="tag-list" data-skill-group="stack" data-skill-slot="intro"></div>
-              </div>
-              <div class="skill-panel certification-panel">
-                <h3>Licenses &amp; Certifications</h3>
-                <div class="tag-list" data-skill-group="certifications" data-skill-slot="intro"></div>
-              </div>
+            <div class="skill-panel">
+              <h3>Technical Stack</h3>
+              <div class="tag-list" data-skill-group="stack" data-skill-slot="intro"></div>
             </div>
           </div>
         </section>
@@ -70,36 +103,45 @@
       <div class="page-inner page-2-inner">
         <div class="page-2-content">
           <section class="exp-section">
-            <h2>Experience</h2>
+            <h2 id="experience-title">Experience</h2>
             <div id="experience-list"></div>
           </section>
         </div>
       </div>
     </section>
 
-    <!-- PAGE 3: Selected Market & Research Projects -->
+    <!-- PAGE 3: Selected AI Projects -->
     <section class="page-section" id="page-3" data-page="3">
       <div class="page-inner page-3-inner">
         <div class="page-3-content">
           <section class="projects-section">
-            <h2>Selected Market &amp; Research Projects</h2>
-            <p class="section-subtitle">Open any case study to view the full project story.</p>
+            <h2 id="projects-title">Projects</h2>
+            <p class="section-subtitle" id="projects-subtitle">The lead project is the one most aligned with the target role. Each demo now shows a different kind of visualization so the driving parameter is obvious.</p>
+            <div class="demo-callout" id="demo-callout">Each demo exposes a different structural knob: a precision/recall frontier, an evidence-path trace, an interactive CNN workbench, or an estimator forest plot.</div>
             <div id="projects-accordion"></div>
           </section>
         </div>
       </div>
     </section>
 
-    <!-- PAGE 4: Education, Relevant Coursework & Applied Finance Projects -->
+    <!-- PAGE 4: Education, Awards, Publications, Peers -->
     <section class="page-section" id="page-4" data-page="4">
       <div class="page-inner page-4-inner">
         <section class="edu-section">
-          <h2>Education</h2>
+          <h2 id="education-title">Education</h2>
           <div id="education-list"></div>
         </section>
-        <section class="coursework-section">
-          <h2>Relevant Coursework &amp; Applied Finance Projects</h2>
-          <div id="coursework-list"></div>
+        <section class="awards-section">
+          <h2 id="awards-title">Awards</h2>
+          <div id="awards-list"></div>
+        </section>
+        <section class="pub-section">
+          <h2 id="publications-title">Publications</h2>
+          <div id="publications-list"></div>
+        </section>
+        <section class="peers-section">
+          <h2 id="peers-title">What Peers Say</h2>
+          <div class="peers-carousel" id="peers-carousel"></div>
         </section>
       </div>
     </section>
@@ -118,13 +160,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+  <script src="assets/data/base.js"></script>
+  <script src="assets/data/jobs.js"></script>
   <script src="assets/content.js"></script>
-  <script src="assets/js/icons.js?v=no-initial-icons-20260514"></script>
+  <script src="assets/js/icons.js"></script>
   <script src="assets/js/state.js"></script>
+  <script src="assets/js/modes.js"></script>
+  <script src="assets/js/shell.js"></script>
   <script src="assets/js/three-bg.js"></script>
   <script src="assets/js/pages.js"></script>
-  <script src="assets/js/skills.js?v=no-initial-icons-20260514"></script>
-  <script src="assets/js/projects.js?v=no-initial-icons-20260514"></script>
+  <script src="assets/js/widgets.js"></script>
+  <script src="assets/js/skills.js"></script>
+  <script src="assets/js/projects.js"></script>
+  <script src="assets/js/chat.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
