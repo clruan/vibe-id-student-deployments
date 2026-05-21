@@ -6,6 +6,7 @@
 
     container.innerHTML = data.projects
       .map(function (project) {
+        var badgeMeta = project.mentorReview ? "View project details \u00b7 With mentor review" : "View project details";
         return '<div class="project-accordion-item" data-project-id="' + project.id + '">' +
           '<button class="project-accordion-header" type="button">' +
             '<div>' +
@@ -16,7 +17,7 @@
               '<div class="demo-badge">' +
                 '<span class="demo-badge-copy">' +
                   '<span class="demo-badge-title">Open case study</span>' +
-                  '<span class="demo-badge-meta">View project details</span>' +
+                  '<span class="demo-badge-meta">' + badgeMeta + '</span>' +
                 '</span>' +
                 '<span class="demo-badge-arrow">\u25BC</span>' +
               '</div>' +

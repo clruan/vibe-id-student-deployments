@@ -534,7 +534,7 @@ window.resumeContent = {
     {
       id: "market-pulse",
       navTitle: "Market Pulse Copilot",
-      navMeta: "Market-monitoring prototype with mentor review — tracks catalysts, price context, technical levels, and participation signals for an analyst-style brief",
+      navMeta: "Market-monitoring prototype — tracks catalysts, price context, technical levels, and participation signals for an analyst-style brief",
       title: "Market Pulse Copilot for Market Monitoring and Ticker Briefs",
       source: "AI Product Innovation Worksheet",
       tagline: "Market-monitoring prototype that organizes catalysts, price context, technical levels, and participation signals into a concise analyst-style ticker brief.",
