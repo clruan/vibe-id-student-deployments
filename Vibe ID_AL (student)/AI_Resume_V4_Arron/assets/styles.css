@@ -3498,8 +3498,69 @@ p.section-subtitle,
   margin-top: 0;
 }
 
+.mentor-section {
+  margin-top: 0;
+}
+
 .coursework-item {
   border-radius: 16px;
+}
+
+.mentor-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 1.2rem;
+  padding: clamp(1.2rem, 2vw, 1.55rem);
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+.mentor-label {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font: 700 0.72rem/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mentor-quote {
+  margin: 0;
+  color: var(--primary);
+  font-size: clamp(1rem, 1.4vw, 1.18rem);
+  font-weight: 700;
+  line-height: 1.58;
+}
+
+.mentor-quote::before {
+  content: "\201C";
+}
+
+.mentor-quote::after {
+  content: "\201D";
+}
+
+.mentor-attribution {
+  margin: 0.8rem 0 0;
+  color: var(--body);
+  font-weight: 700;
+}
+
+.mentor-attribution::before {
+  content: "\2014 ";
+  color: var(--muted);
+}
+
+.mentor-feedback-block {
+  padding-left: 1.15rem;
+  border-left: 1px solid var(--border);
+}
+
+.mentor-feedback {
+  margin: 0;
+  color: var(--body);
+  line-height: 1.65;
 }
 
 /* Institutional finance color hierarchy */
@@ -3684,8 +3745,17 @@ p.section-subtitle,
     padding-left: 0.55rem;
   }
 
+  .mentor-card {
+    grid-template-columns: 1fr;
+  }
+
+  .mentor-feedback-block {
+    padding: 1rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
   .page-dot {
     font-size: 0.72rem;
   }
 }
-

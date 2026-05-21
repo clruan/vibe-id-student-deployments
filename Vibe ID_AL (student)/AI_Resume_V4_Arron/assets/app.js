@@ -42,6 +42,7 @@
   });
   ns.pages.renderEducation(data);
   ns.pages.renderCoursework(data);
+  ns.pages.renderMentorReview(data);
 
   /* ── Render skill panels ───────────────────── */
   ns.skills.renderSkillPanels(data, state);

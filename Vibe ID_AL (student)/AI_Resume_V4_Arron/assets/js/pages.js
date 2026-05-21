@@ -337,6 +337,25 @@
       .join("");
   }
 
+  function renderMentorReview(data) {
+    var container = document.getElementById("mentor-review");
+    var review = data.mentorReview;
+    if (!container || !review) return;
+
+    container.innerHTML =
+      '<article class="mentor-card">' +
+        '<div class="mentor-review-block">' +
+          '<p class="mentor-label">Mentor Review</p>' +
+          '<blockquote class="mentor-quote">' + review.quote + '</blockquote>' +
+          '<p class="mentor-attribution">' + review.mentor + ', ' + review.role + '</p>' +
+        '</div>' +
+        '<div class="mentor-feedback-block">' +
+          '<p class="mentor-label">Mentor Feedback</p>' +
+          '<p class="mentor-feedback">' + review.feedback + '</p>' +
+        '</div>' +
+      '</article>';
+  }
+
   /* ── GSAP scroll-driven page transitions ──── */
 
   function setupScrollAnimations(state) {
@@ -457,6 +476,7 @@
     renderExperience: renderExperience,
     renderEducation: renderEducation,
     renderCoursework: renderCoursework,
+    renderMentorReview: renderMentorReview,
     renderAwards: renderAwards,
     setupScrollAnimations: setupScrollAnimations,
     detectCurrentPage: detectCurrentPage

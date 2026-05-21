@@ -523,6 +523,15 @@ window.resumeContent = {
     }
   ],
 
+  mentorReview: {
+    quote:
+      "Overall, this is a strong and impressive project. It already shows the structure of an agent-like system, and I believe this represents a meaningful future direction.",
+    mentor: "Tong Li",
+    role: "Portfolio Manager",
+    feedback:
+      "The mentor suggested expanding the model with additional factors, such as quality factors, to make the investment signal framework more robust."
+  },
+
   links: [
     { label: "Email", value: "limingxuan513@gmail.com", href: "mailto:limingxuan513@gmail.com" },
     { label: "LinkedIn", value: "linkedin.com/in/mingxuanaaronli", href: "https://www.linkedin.com/in/mingxuanaaronli" },
