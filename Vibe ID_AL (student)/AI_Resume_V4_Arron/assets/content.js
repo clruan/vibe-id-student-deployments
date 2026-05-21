@@ -523,15 +523,6 @@ window.resumeContent = {
     }
   ],
 
-  mentorReview: {
-    quote:
-      "Overall, this is a strong and impressive project. It already shows the structure of an agent-like system, and I believe this represents a meaningful future direction.",
-    mentor: "Tong Li",
-    role: "Portfolio Manager",
-    feedback:
-      "The mentor suggested expanding the model with additional factors, such as quality factors, to make the investment signal framework more robust."
-  },
-
   links: [
     { label: "Email", value: "limingxuan513@gmail.com", href: "mailto:limingxuan513@gmail.com" },
     { label: "LinkedIn", value: "linkedin.com/in/mingxuanaaronli", href: "https://www.linkedin.com/in/mingxuanaaronli" },
@@ -543,7 +534,7 @@ window.resumeContent = {
     {
       id: "market-pulse",
       navTitle: "Market Pulse Copilot",
-      navMeta: "Market-monitoring prototype — tracks catalysts, price context, technical levels, and participation signals for an analyst-style brief",
+      navMeta: "Market-monitoring prototype with mentor review — tracks catalysts, price context, technical levels, and participation signals for an analyst-style brief",
       title: "Market Pulse Copilot for Market Monitoring and Ticker Briefs",
       source: "AI Product Innovation Worksheet",
       tagline: "Market-monitoring prototype that organizes catalysts, price context, technical levels, and participation signals into a concise analyst-style ticker brief.",
@@ -561,6 +552,14 @@ window.resumeContent = {
         "Organized each read around analyst checks: catalyst, price context, technical position, and participation / fund-flow confirmation.",
         "Packaged the prototype with a live demo, worksheet, and presentation deck to show how the workflow could support market research and briefing practice."
       ],
+      mentorReview: {
+        quote:
+          "Overall, this is a strong and impressive project. It already shows the structure of an agent-like system, and I believe this represents a meaningful future direction.",
+        mentor: "Tong Li",
+        role: "Portfolio Manager",
+        feedback:
+          "The mentor suggested expanding the model with additional factors, such as quality factors, to make the investment signal framework more robust."
+      },
       screenshots: [
         { src: "../User_data/Aaron Li/AI Product/New Screenshots/market-pulse-01-input-scenario-hd.png", alt: "Market Pulse ticker input and market scenario selector", caption: "Ticker Input + Market Scenario Selector" },
         { src: "../User_data/Aaron Li/AI Product/New Screenshots/market-pulse-02-price-catalysts-hd.png", alt: "AAPL ticker brief with price context, company snapshot, and catalysts", caption: "Ticker Brief: Price Context + Catalysts" },

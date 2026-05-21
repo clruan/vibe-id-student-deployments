@@ -106,6 +106,7 @@
         renderProblemStatement(project) +
         renderApproach(data, project) +
         renderResult(project) +
+        renderMentorReview(project) +
         renderScreenshotStrip(project) +
       '</article>';
 
@@ -211,6 +212,23 @@
       '<ul class="result-list">' +
         r.map(function (item) { return '<li>' + item + '</li>'; }).join("") +
       '</ul>' +
+    '</section>';
+  }
+
+  function renderMentorReview(project) {
+    var review = project.mentorReview;
+    if (!review) return "";
+
+    return '<section class="star-card mentor-card">' +
+      '<div class="mentor-review-block">' +
+        '<p class="mentor-label">Mentor Review</p>' +
+        '<blockquote class="mentor-quote">' + review.quote + '</blockquote>' +
+        '<p class="mentor-attribution">' + review.mentor + ', ' + review.role + '</p>' +
+      '</div>' +
+      '<div class="mentor-feedback-block">' +
+        '<p class="mentor-label">Mentor Feedback</p>' +
+        '<p class="mentor-feedback">' + review.feedback + '</p>' +
+      '</div>' +
     '</section>';
   }
 
