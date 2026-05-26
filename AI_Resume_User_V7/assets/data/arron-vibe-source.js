@@ -789,8 +789,8 @@ window.resumeContent = {
       artifactLinks: [
         {
           label: "Open research paper",
-          href: "../User_data/Aaron Li/Research Agent/Entry_Level_IB_Analyst_Research_Paper.docx",
-          note: "DOCX source"
+          href: "../User_data/Aaron Li/Research Agent/Entry_Level_IB_Analyst_Research_Paper.pdf",
+          note: "PDF paper"
         }
       ],
       stages: [

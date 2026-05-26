@@ -120,32 +120,23 @@
   }
 
   async function getReply(userText) {
-    var apiKey = window.ANTHROPIC_API_KEY;
-    if (apiKey) {
-      try {
-        var res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            "anthropic-dangerous-direct-browser-access": "true"
-          },
-          body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
-            max_tokens: 300,
-            system: SYSTEM_CONTEXT,
-            messages: messages.filter(function (m) { return m.role !== "assistant" || m.content !== GREETING; })
-              .concat([{ role: "user", content: userText }])
-              .slice(-10)
-          })
-        });
-        if (res.ok) {
-          var json = await res.json();
-          return json.content[0].text;
-        }
-      } catch (_) { /* fall through */ }
-    }
+    try {
+      var res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: SYSTEM_CONTEXT,
+          messages: messages.filter(function (m) {
+            return m.role === "user" || (m.role === "assistant" && m.content !== GREETING);
+          }).concat([{ role: "user", content: userText }]).slice(-10)
+        })
+      });
+      if (res.ok) {
+        var json = await res.json();
+        if (json && json.reply) return json.reply;
+      }
+    } catch (_) { /* fall through */ }
+
     return localFallback(userText);
   }
 

@@ -7,6 +7,8 @@
 !/AI_Resume_User_V7/**
 !/AI_Resume_User_V7_Aaron/
 !/AI_Resume_User_V7_Aaron/**
+!/api/
+!/api/**
 !/README.md
 !/.gitignore
 !/vercel.json

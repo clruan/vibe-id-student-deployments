@@ -69,6 +69,9 @@
 52. Removed duplicate filtered project/experience result cards from the intro filter output; the filter now leaves only a compact summary while the real sections update below.
 53. Strengthened active filter chips and highlighted related-skill pills with clearer rings, borders, and shadow.
 54. Added `AI_Resume_User_V7_Aaron` as a separate Aaron-focused V7 folder with Aaron as the default profile.
+55. Added a root Vercel serverless chat endpoint backed by DeepSeek `deepseek-v4-flash`.
+56. Rewired the client chatbot to call `/api/chat` and keep API keys out of browser JavaScript.
+57. Pointed Aaron's visible research paper action at the PDF copy instead of the DOCX source.
 
 ## Verification
 
@@ -90,6 +93,7 @@
 - 2026-05-26 update: Chrome headless CDP regression passes across `duke`, `frank`, and `aaron`: project headers no longer render as nested `<button>` elements, every visible project header keeps its demo badge and skill strip attached, each visible project opens and renders detail content, project-header `+N` skills expand without toggling the project, and intro filter `Show all` / `Show fewer` toggles remain stable after repeated skill-filter re-renders.
 - 2026-05-26 update 2: Chrome headless CDP regression passes across `duke`, `frank`, and `aaron`: selected Python/Excel filters move to the first visible related-skill pill in matching projects and experiences, selected pills render highlighted, the floating clear button is visible after scrolling, clearing removes all active filters and resets the summary, and `Show all` / `Show fewer` still toggles correctly after clearing.
 - 2026-05-26 update 3: `node --check` passes for shared V7, Aaron V7, and the Vibe_ID generator; generator sample rebuild passes; Chrome headless CDP verifies `AI_Resume_User_V7_Aaron/` defaults to Aaron, selected skill chips have visible ring/shadow, duplicate filtered project/experience result cards and jump buttons render at zero count, and clear filters resets the state.
+- 2026-05-26 update 4: `node --check` passes for shared V7, Aaron V7, and `/api/chat`; local HTTP checks return 200 for Aaron's copied research screenshot PNG and paper PDF; Chrome headless CDP confirms the Research Agent project renders four screenshots with zero missing images and links `Open research paper` to the PDF.
 
 ## Duke Source Checks
 

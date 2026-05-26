@@ -1,5 +1,14 @@
 # Changelog
 
+## local-template-v7-aaron-assets-deepseek-chat - 2026-05-26
+
+- Added a Vercel `/api/chat` endpoint for DeepSeek chat completions using `deepseek-v4-flash`.
+- Updated the portfolio chatbot to call the serverless endpoint instead of browser-side vendor keys.
+- Copied Aaron screenshots, resume, workbook, and paper files into `AI_Resume_User_V7_Aaron/User_data/Aaron Li/` so deployed assets are self-contained.
+- Rewrote Aaron V7 screenshot, resume, and artifact links to local `User_data/Aaron Li/...` paths.
+- Changed the visible research paper action to open the PDF instead of DOCX so the browser does not show a blank document page.
+- Bumped the cache key for the asset and chat update.
+
 ## local-template-v7-aaron-folder-filter-summary - 2026-05-26
 
 - Added an Aaron-focused V7 folder at `AI_Resume_User_V7_Aaron`, with the default profile route locked to Aaron.

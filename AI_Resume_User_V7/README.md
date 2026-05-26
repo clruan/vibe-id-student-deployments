@@ -14,6 +14,8 @@ Project headers deliberately avoid native `<button>` wrappers because related-sk
 
 When filters are active, `Clear filters` appears in the filter header, filter summary, and as a floating control so the current filter state can be reset from anywhere on the page.
 
+Chat is wired through the root Vercel function at `/api/chat`. Set `DEEPSEEK_API_KEY` in Vercel project environment variables; the function uses `deepseek-v4-flash` by default.
+
 Simplest local view:
 
 - Open `AI_Resume_User_V7/viewer.html` directly in a browser.

@@ -482,8 +482,8 @@
         artifactLinks: [
           {
             label: "Open research paper",
-            href: "../User_data/Arron Li/Research Agent/research_paper.docx",
-            note: "DOCX source"
+            href: "../Vibe ID_AL (student)/User_data/Aaron Li/Research Agent/Entry_Level_IB_Analyst_Research_Paper.pdf",
+            note: "PDF paper"
           },
           {
             label: "Open research workbook",
