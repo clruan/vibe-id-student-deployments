@@ -1,4 +1,4 @@
-const LOCAL_DEEPSEEK_API_KEY = ""; // Optional local/serverless test fallback. Prefer Vercel env: DEEPSEEK_API_KEY.
+const LOCAL_DEEPSEEK_API_KEY = ""; // Keep empty. Set DEEPSEEK_API_KEY in Vercel environment variables.
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || LOCAL_DEEPSEEK_API_KEY;
 const DEEPSEEK_ENDPOINT = process.env.DEEPSEEK_ENDPOINT || "https://api.deepseek.com/chat/completions";
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-v4-flash";
