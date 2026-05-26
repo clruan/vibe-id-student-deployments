@@ -1,0 +1,32 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": true,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/AI_Resume_User_V7_Aaron/",
+      "permanent": false
+    },
+    {
+      "source": "/aaron",
+      "destination": "/AI_Resume_User_V7_Aaron/",
+      "permanent": false
+    },
+    {
+      "source": "/aaron-v7",
+      "destination": "/AI_Resume_User_V7_Aaron/",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
+}

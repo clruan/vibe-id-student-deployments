@@ -3,8 +3,13 @@
 
 !/Vibe ID_AL (student)/
 !/Vibe ID_RS (Student)/
+!/AI_Resume_User_V7/
+!/AI_Resume_User_V7/**
+!/AI_Resume_User_V7_Aaron/
+!/AI_Resume_User_V7_Aaron/**
 !/README.md
 !/.gitignore
+!/vercel.json
 
 .DS_Store
 Thumbs.db
