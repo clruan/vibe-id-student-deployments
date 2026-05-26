@@ -120,10 +120,16 @@
   }
 
   async function getReply(userText) {
+    var timeoutId = null;
     try {
+      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      timeoutId = controller ? window.setTimeout(function () {
+        controller.abort();
+      }, 8000) : null;
       var res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller ? controller.signal : undefined,
         body: JSON.stringify({
           context: SYSTEM_CONTEXT,
           messages: messages.filter(function (m) {
@@ -131,11 +137,13 @@
           }).concat([{ role: "user", content: userText }]).slice(-10)
         })
       });
+      if (timeoutId) window.clearTimeout(timeoutId);
       if (res.ok) {
         var json = await res.json();
         if (json && json.reply) return json.reply;
       }
     } catch (_) { /* fall through */ }
+    if (timeoutId) window.clearTimeout(timeoutId);
 
     return localFallback(userText);
   }

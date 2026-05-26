@@ -35,26 +35,34 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "No chat messages supplied" });
     }
 
-    const upstream = await fetch(DEEPSEEK_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
-        messages: [
-          {
-            role: "system",
-            content: context || "You are a concise assistant for a candidate portfolio site."
-          }
-        ].concat(safeMessages),
-        thinking: { type: "disabled" },
-        temperature: 0.3,
-        max_tokens: 500,
-        stream: false
-      })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    let upstream;
+    try {
+      upstream = await fetch(DEEPSEEK_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: DEEPSEEK_MODEL,
+          messages: [
+            {
+              role: "system",
+              content: context || "You are a concise assistant for a candidate portfolio site."
+            }
+          ].concat(safeMessages),
+          thinking: { type: "disabled" },
+          temperature: 0.3,
+          max_tokens: 500,
+          stream: false
+        })
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const payload = await upstream.json().catch(() => ({}));
 

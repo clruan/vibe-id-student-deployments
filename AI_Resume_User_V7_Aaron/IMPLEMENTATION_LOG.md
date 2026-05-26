@@ -73,6 +73,7 @@
 56. Rewired the client chatbot to call `/api/chat` and keep API keys out of browser JavaScript.
 57. Copied Aaron's image and document artifacts into the Aaron V7 folder and rewrote Aaron asset links to local `User_data/Aaron Li/...` paths.
 58. Pointed Aaron's visible research paper action at the PDF copy instead of the DOCX source.
+59. Added client and server request timeouts around DeepSeek chat calls so the widget falls back instead of staying on `Thinking...`.
 
 ## Verification
 
@@ -95,6 +96,7 @@
 - 2026-05-26 update 2: Chrome headless CDP regression passes across `duke`, `frank`, and `aaron`: selected Python/Excel filters move to the first visible related-skill pill in matching projects and experiences, selected pills render highlighted, the floating clear button is visible after scrolling, clearing removes all active filters and resets the summary, and `Show all` / `Show fewer` still toggles correctly after clearing.
 - 2026-05-26 update 3: `node --check` passes for shared V7, Aaron V7, and the Vibe_ID generator; generator sample rebuild passes; Chrome headless CDP verifies `AI_Resume_User_V7_Aaron/` defaults to Aaron, selected skill chips have visible ring/shadow, duplicate filtered project/experience result cards and jump buttons render at zero count, and clear filters resets the state.
 - 2026-05-26 update 4: `node --check` passes for shared V7, Aaron V7, and `/api/chat`; local HTTP checks return 200 for Aaron's copied research screenshot PNG and paper PDF; Chrome headless CDP confirms the Research Agent project renders four screenshots with zero missing images and links `Open research paper` to the PDF.
+- 2026-05-26 update 5: Chrome headless CDP confirms the chat FAB opens, a user question submits, the typing indicator clears, and a fallback assistant response renders when `/api/chat` is unavailable on the local static server.
 
 ## Duke Source Checks
 

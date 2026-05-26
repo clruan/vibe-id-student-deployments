@@ -1,5 +1,10 @@
 # Changelog
 
+## local-template-v7-chat-timeout-fallback - 2026-05-26
+
+- Added browser-side and serverless DeepSeek request timeouts so the chat widget cannot stay stuck on `Thinking...`.
+- Bumped the cache key for the chat timeout/fallback update.
+
 ## local-template-v7-aaron-assets-deepseek-chat - 2026-05-26
 
 - Added a Vercel `/api/chat` endpoint for DeepSeek chat completions using `deepseek-v4-flash`.
