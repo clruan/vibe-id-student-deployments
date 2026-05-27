@@ -855,6 +855,83 @@ body.mode-vip .mode-toggle-subtitle {
   min-width: 0;
 }
 
+.result-endorsement-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.15rem 0 0.55rem;
+  padding: 0.26rem 0.48rem 0.26rem 0.34rem;
+  border: 1px solid rgba(220, 38, 38, 0.24);
+  border-radius: 999px;
+  background: rgba(254, 242, 242, 0.72);
+  color: #991b1b;
+}
+
+.result-endorsement-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  flex: 0 0 1.45rem;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: #fff;
+  color: #dc2626;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.result-endorsement-logo img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.16rem;
+  background: #fff;
+}
+
+.result-endorsement-logo img + .result-endorsement-logo-fallback {
+  display: none;
+}
+
+.result-endorsement-logo.is-placeholder .result-endorsement-logo-fallback {
+  display: inline;
+}
+
+.result-endorsement-badge-copy {
+  display: grid;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.result-endorsement-badge-copy strong {
+  color: #dc2626;
+  font-family: var(--mono);
+  font-size: 0.57rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.result-endorsement-badge-copy span {
+  max-width: 16rem;
+  overflow: hidden;
+  color: #7f1d1d;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .result-project-card h3 {
   font-family: var(--sans);
   font-size: 1rem;

@@ -1,5 +1,11 @@
 # Changelog
 
+## local-template-v7-featured-ai-project-badge - 2026-05-27
+
+- Renamed Aaron's intro results section from `Selected Analyst Results` to `Featured AI Projects`.
+- Added a compact red `Expert Endorsement` badge with company logo/fallback initials to featured project cards that have endorsement data.
+- Bumped the cache key for the featured-project title and endorsement badge update.
+
 ## local-template-v7-red-project-endorsement - 2026-05-27
 
 - Made project-level `Expert Endorsement` blocks render in standard mode instead of requiring endorsement/VIP mode.

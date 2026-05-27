@@ -32,6 +32,7 @@
       return '<article class="result-project-card" style="--project-accent:' + (project.accent || "#4f46e5") + '">' +
         '<div class="result-project-main">' +
           renderProjectSkillStrip(data, project, 5) +
+          renderResultEndorsementBadge(project) +
           '<h3>' + (project.navTitle || project.title) + '</h3>' +
           '<p class="result-project-meta">' + (project.navMeta || project.source || "Project") + '</p>' +
           '<p class="result-project-summary">' + summarizeText(project.summary || project.algorithmSummary || "", 180) + '</p>' +
@@ -48,6 +49,46 @@
         openProjectFromResult(button.dataset.resultProject);
       });
     });
+  }
+
+  function renderResultEndorsementBadge(project) {
+    var endorsement = project && project.endorsement;
+    if (!endorsement) return "";
+
+    var source = endorsement.company || endorsement.institution || endorsement.organization || endorsement.role || "Expert";
+    var person = endorsement.by || endorsement.name || "";
+    return '<div class="result-endorsement-badge" aria-label="Expert endorsement">' +
+      renderResultEndorsementLogo(endorsement) +
+      '<span class="result-endorsement-badge-copy">' +
+        '<strong>Expert Endorsement</strong>' +
+        '<span>' + stripTags(person ? person + " · " + source : source) + '</span>' +
+      '</span>' +
+    '</div>';
+  }
+
+  function renderResultEndorsementLogo(endorsement) {
+    if (endorsement.logoSrc) {
+      return '<span class="result-endorsement-logo">' +
+        '<img src="' + endorsement.logoSrc + '" alt="' + (resultEndorsementLogoAlt(endorsement)) + '" loading="lazy" onerror="this.remove();this.parentElement.classList.add(\'is-placeholder\');">' +
+        '<span class="result-endorsement-logo-fallback">' + resultEndorsementLogoText(endorsement) + '</span>' +
+      '</span>';
+    }
+
+    return '<span class="result-endorsement-logo is-placeholder" aria-hidden="true">' +
+      '<span class="result-endorsement-logo-fallback">' + resultEndorsementLogoText(endorsement) + '</span>' +
+    '</span>';
+  }
+
+  function resultEndorsementLogoAlt(endorsement) {
+    return stripTags(endorsement.logoAlt || endorsement.company || endorsement.institution || endorsement.organization || "Company logo");
+  }
+
+  function resultEndorsementLogoText(endorsement) {
+    var source = endorsement.logoText || endorsement.company || endorsement.institution || endorsement.organization || endorsement.by || "Expert";
+    var words = stripTags(source).split(/\s+/).filter(Boolean);
+    if (!words.length) return "EX";
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
   }
 
   function getSelectedResultProjects(data) {

@@ -76,6 +76,7 @@
 59. Added client and server request timeouts around DeepSeek chat calls so the widget falls back instead of staying on `Thinking...`.
 60. Mirrored the chat API into `AI_Resume_User_V7_Aaron/api/chat.js` for Vercel deployments whose Root Directory is the Aaron folder.
 61. Made project-level Expert Endorsements visible in standard mode, changed the treatment to red, and added robust company-logo fallback rendering.
+62. Renamed Aaron's intro results heading to Featured AI Projects and added compact red Expert Endorsement badges with company logos to endorsed featured cards.
 
 ## Verification
 
@@ -101,6 +102,7 @@
 - 2026-05-26 update 5: Chrome headless CDP confirms the chat FAB opens, a user question submits, the typing indicator clears, and a fallback assistant response renders when `/api/chat` is unavailable on the local static server.
 - 2026-05-26 update 6: Public Vercel `/api/chat` check returned 404, indicating the deployment root did not include the repo-level API folder; the Aaron-folder API mirror was added to support that configuration.
 - 2026-05-27 update: Chrome headless CDP confirms Aaron project cards render `Expert Endorsement` in standard mode, use the red eyebrow color, and include a company logo slot.
+- 2026-05-27 update 2: Chrome headless CDP confirms the Aaron intro heading renders `Featured AI Projects`, the two featured cards render, and the endorsed featured card shows a red `Expert Endorsement` badge with the GuideStone logo.
 
 ## Duke Source Checks
 

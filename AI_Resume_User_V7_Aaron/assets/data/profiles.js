@@ -873,7 +873,7 @@
       ui: {
         metaTitle: "Aaron Li | AI Resume User V7",
         metaDescription: "Local AI Resume V7 profile for Aaron Li using the Vibe ID AL finance research and AI product source.",
-        resultsTitle: "Selected Analyst Results",
+        resultsTitle: "Featured AI Projects",
         experienceTitle: "Finance and Research Experience",
         projectsTitle: "Selected Finance and AI Projects",
         projectsSubtitle: "Open a project to inspect the workflow, screenshots, source materials, and demo.",
