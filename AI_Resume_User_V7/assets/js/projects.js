@@ -148,7 +148,8 @@
 
     return ns.modes.renderVipEndorsement(project.endorsement, {
       eyebrow: eyebrow,
-      variant: "project project-" + placement
+      variant: "project project-" + placement,
+      force: true
     });
   }
 

@@ -1,8 +1,16 @@
 # Changelog
 
+## local-template-v7-red-project-endorsement - 2026-05-27
+
+- Made project-level `Expert Endorsement` blocks render in standard mode instead of requiring endorsement/VIP mode.
+- Changed endorsement accent styling from burgundy to a clearer red treatment.
+- Added resilient company-logo rendering with fallback text if an external logo image fails.
+- Bumped the cache key for the project endorsement update.
+
 ## local-template-v7-chat-timeout-fallback - 2026-05-26
 
 - Added browser-side and serverless DeepSeek request timeouts so the chat widget cannot stay stuck on `Thinking...`.
+- Added a second copy of the chat API under `AI_Resume_User_V7_Aaron/api/chat.js` so Vercel projects rooted at the Aaron folder still expose `/api/chat`.
 - Bumped the cache key for the chat timeout/fallback update.
 
 ## local-template-v7-aaron-assets-deepseek-chat - 2026-05-26

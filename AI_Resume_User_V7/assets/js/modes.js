@@ -21,7 +21,9 @@
   }
 
   function renderVipEndorsement(endorsement, options) {
-    if (!document.body.classList.contains("mode-vip")) return "";
+    if (!options || !options.force) {
+      if (!document.body.classList.contains("mode-vip")) return "";
+    }
     if (!endorsement) return "";
 
     var variant = options && options.variant ? " vip-endorsement-" + options.variant : "";
@@ -62,7 +64,10 @@
       var logoClass = /guidestone/i.test(endorsement.logoText || endorsement.company || endorsement.logoAlt || "")
         ? " vip-endorsement-guidestone"
         : "";
-      return '<span class="vip-endorsement-logo' + logoClass + '"><img src="' + endorsement.logoSrc + '" alt="' + endorsementLogoAlt(endorsement) + '" loading="lazy"></span>';
+      return '<span class="vip-endorsement-logo' + logoClass + '">' +
+        '<img src="' + endorsement.logoSrc + '" alt="' + endorsementLogoAlt(endorsement) + '" loading="lazy" onerror="this.remove();this.parentElement.classList.add(\'is-placeholder\');">' +
+        '<span class="vip-endorsement-logo-fallback">' + endorsementLogoText(endorsement) + '</span>' +
+      '</span>';
     }
 
     var source = endorsement.logoText ||
@@ -94,6 +99,10 @@
 
   function endorsementLogoAlt(endorsement) {
     return endorsement.logoAlt || "Company logo";
+  }
+
+  function endorsementLogoText(endorsement) {
+    return endorsement.logoText || endorsement.company || endorsement.institution || endorsement.organization || "Logo";
   }
 
   function init(state) {
