@@ -35,7 +35,7 @@
     ui: {
       metaTitle: "Aaron Li | AI Resume User V3",
       metaDescription: "User-facing interactive resume for Aaron Li with investment-banking research, Market Pulse Copilot, and Research Agent project demos.",
-      resultsTitle: "Selected Results",
+      resultsTitle: "Featured AI Projects",
       modeNote: "Show source-backed fit notes in Experience and Projects.",
       experienceTitle: "Research and Professional Experience",
       projectsTitle: "Selected Finance and AI Projects",
@@ -269,9 +269,9 @@
           "Documented the blocker log, demo flow, success standards, and capability-role mapping for IB analyst recruiting."
         ],
         metrics: [
-          { label: "Time target", value: "10-15m -> 1-3m" },
-          { label: "Output target", value: "30 sec" },
-          { label: "Core modules", value: "3" }
+          { label: "First-pass review time", value: "10-15m -> 1-3m", category: "Improvement" },
+          { label: "Output target", value: "30 sec", category: "Workflow" },
+          { label: "Core modules", value: "3", category: "Coverage" }
         ],
         endorsement: {
           text: "This project is strongest when read as an analyst productivity demo: Aaron identified a real workflow bottleneck, cut non-MVP features, shipped the demo, and explained the finance judgment layer.",
@@ -482,7 +482,7 @@
         artifactLinks: [
           {
             label: "Open research paper",
-            href: "User_data/Aaron Li/Research Agent/Entry_Level_IB_Analyst_Research_Paper.pdf",
+            href: "../Vibe ID_AL (student)/User_data/Aaron Li/Research Agent/Entry_Level_IB_Analyst_Research_Paper.pdf",
             note: "PDF paper"
           },
           {

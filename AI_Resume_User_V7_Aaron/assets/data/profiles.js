@@ -48,6 +48,31 @@
         summary: "Builds ML workflows, biomedical analytics systems, and reviewer-facing project demos.",
         highlights: ["Reviewable ML", "Clinical analytics", "Interactive AI tools"]
       },
+      atsProfile: {
+        split: "Calibration set",
+        targetRole: "Applied Scientist / Data Scientist / AI Engineer",
+        scoringUse: "Train Vibe ID and ATS keyword stability with Aaron and Frank before Zach blind test.",
+        targetKeywords: [
+          "Python",
+          "PyTorch",
+          "FastAPI",
+          "React",
+          "R",
+          "SQL",
+          "machine learning",
+          "causal inference",
+          "clinical analytics",
+          "model evaluation"
+        ],
+        parseSignals: [
+          "Projects expose metrics, source artifacts, and stack terms.",
+          "Skills use plain text chips that ATS can mirror as keywords."
+        ],
+        riskFlags: [
+          "Keep biomedical research terms mapped to target role language.",
+          "Avoid hiding core keywords only inside interactive widgets."
+        ]
+      },
       results: [
         {
           value: "97%",
@@ -77,7 +102,7 @@
       ui: {
         metaTitle: "Duke Ruan | AI Resume User V7",
         metaDescription: "Local AI Resume V7 profile for Duke Ruan with reviewable AI, biostatistics, and clinical analytics projects.",
-        resultsTitle: "Selected Results",
+        resultsTitle: "Featured AI Projects",
         experienceTitle: "Research and Professional Experience",
         projectsTitle: "Selected AI and Analytics Projects",
         projectsSubtitle: "Open a project to inspect the method stages and a purpose-built demo. The ND2 agent and deep-learning microscopy work are intentionally split.",
@@ -201,9 +226,9 @@
       "Connected model outputs to visual QC so wet-lab collaborators could inspect failures instead of receiving a black-box label."
     ];
     deepImaging.metrics = [
-      { label: "Classification", value: "97%" },
-      { label: "Samples", value: "20,000+" },
-      { label: "Models", value: "U-Net / Med-SAM / DeepLabV3" }
+      { label: "Classification accuracy", value: "97%", category: "Quality" },
+      { label: "Samples", value: "20,000+", category: "Scale" },
+      { label: "Models", value: "U-Net / Med-SAM / DeepLabV3", category: "Method" }
     ];
     deepImaging.relatedTech = ["python", "pytorch", "tensorflow", "r", "docker"];
     deepImaging.stages = [
@@ -692,9 +717,9 @@
         "Documented installation, user guide, upgrade path, traditional CLI mode, and interactive web mode for collaborators."
       ],
       metrics: [
-        { label: "Threshold range", value: "0-4095" },
-        { label: "Channels", value: "3 + ratios" },
-        { label: "Modes", value: "CLI + web" }
+        { label: "Interactive threshold sweep", value: "0-4095", category: "Coverage" },
+        { label: "Review modes", value: "CLI + web", category: "Workflow" },
+        { label: "Channels", value: "3 + ratios", category: "Coverage" }
       ],
       endorsement: {
         text: "This is the correct agent project: it makes threshold selection and statistical reporting inspectable for scientists instead of hard-coding a single cutoff.",
@@ -816,6 +841,31 @@
 
     frank.order = 2;
     frank.targetRole = frank.targetRole || "Biostatistics methods and clinical analytics profile";
+    frank.atsProfile = Object.assign({
+      split: "Calibration set",
+      targetRole: "Biostatistician / Quantitative Research Analyst / Clinical Data Scientist",
+      scoringUse: "Train ATS scoring boundaries for statistical-method and clinical-analytics resumes.",
+      targetKeywords: [
+        "R",
+        "Python",
+        "SAS",
+        "biostatistics",
+        "simulation",
+        "Q-learning",
+        "clinical analytics",
+        "regression",
+        "survival analysis",
+        "data visualization"
+      ],
+      parseSignals: [
+        "Method names and project titles are repeated in visible text.",
+        "Clinical analysis outputs are separated from UI demo copy."
+      ],
+      riskFlags: [
+        "Method-heavy language needs impact metrics in featured cards.",
+        "Specialized demos should still name standard ATS keywords."
+      ]
+    }, frank.atsProfile || {});
     frank.ui = Object.assign({
       metaTitle: "Frank Yin | AI Resume User V7",
       metaDescription: "Local AI Resume V7 profile for Frank Yin with Q-learning, simulation, and clinical clustering demos."
@@ -847,6 +897,31 @@
         hideExperienceContext: true
       },
       profileMaterialsMode: "ats-only",
+      atsProfile: {
+        split: "Calibration set",
+        targetRole: "Entry-Level Investment Banking Analyst / Investment Research Analyst",
+        scoringUse: "Train finance-language Vibe ID stability and ATS keyword coverage.",
+        targetKeywords: [
+          "investment banking",
+          "financial modeling",
+          "valuation",
+          "DCF",
+          "M&A",
+          "company research",
+          "credit analysis",
+          "market research",
+          "Excel",
+          "PowerPoint"
+        ],
+        parseSignals: [
+          "Finance project titles stay visible in standard mode.",
+          "Source links and project artifacts remain text-addressable."
+        ],
+        riskFlags: [
+          "Do not let AI-product language bury finance keywords.",
+          "Quantify research workflow outputs where source material supports it."
+        ]
+      },
       analyticalSkills: buildAaronAnalyticalSkills(source),
       results: [
         {
@@ -1003,6 +1078,6 @@
 
   function rewriteAaronPath(path) {
     if (!path || typeof path !== "string") return path;
-    return path.replace("../User_data/Aaron Li/", "User_data/Aaron Li/");
+    return path.replace("../User_data/Aaron Li/", "../Vibe ID_AL (student)/User_data/Aaron Li/");
   }
 })();

@@ -7,11 +7,9 @@
     var ui = data.ui || {};
 
     renderHeroIdentity(data);
-    document.getElementById("results-title").textContent = ui.resultsTitle || "Selected Results";
+    document.getElementById("results-title").textContent = ui.resultsTitle || "Featured AI Projects";
     document.getElementById("experience-title").textContent = ui.experienceTitle || "Experience";
     document.getElementById("projects-title").textContent = ui.projectsTitle || "Selected AI Projects";
-    document.getElementById("projects-subtitle").textContent = ui.projectsSubtitle || "Hover or open a project, then use the highlighted Check Demo badge to inspect the interaction.";
-    document.getElementById("demo-callout").textContent = ui.demoCallout || "Each project row includes a stronger Check Demo entry point so reviewers know where to open the live algorithm walkthrough.";
     document.getElementById("education-title").textContent = ui.educationTitle || "Education";
     document.getElementById("awards-title").textContent = ui.awardsTitle || "Awards";
     document.getElementById("publications-title").textContent = ui.publicationsTitle || "Publications";
@@ -29,6 +27,7 @@
     var projects = getSelectedResultProjects(data);
     grid.innerHTML = projects.map(function (project) {
       var metric = getProjectMetric(project);
+      var metricKind = getProjectMetricKind(metric);
       return '<article class="result-project-card" style="--project-accent:' + (project.accent || "#4f46e5") + '">' +
         '<div class="result-project-main">' +
           renderProjectSkillStrip(data, project, 5) +
@@ -38,7 +37,11 @@
           '<p class="result-project-summary">' + summarizeText(project.summary || project.algorithmSummary || "", 180) + '</p>' +
         '</div>' +
         '<div class="result-project-action">' +
-          (metric ? '<div class="result-project-metric"><strong>' + metric.value + '</strong><span>' + metric.label + '</span></div>' : "") +
+          (metric ? '<div class="result-project-metric">' +
+            '<span class="result-project-metric-kind">' + metricKind + '</span>' +
+            '<strong>' + metric.value + '</strong>' +
+            '<span>' + metric.label + '</span>' +
+          '</div>' : "") +
           '<button class="result-demo-button" type="button" data-result-project="' + project.id + '">Check demo</button>' +
         '</div>' +
       '</article>';
@@ -60,7 +63,7 @@
     return '<div class="result-endorsement-badge" aria-label="Expert endorsement">' +
       renderResultEndorsementLogo(endorsement) +
       '<span class="result-endorsement-badge-copy">' +
-        '<strong>Expert Endorsement</strong>' +
+        '<strong>Expert endorsement</strong>' +
         '<span>' + stripTags(person ? person + " · " + source : source) + '</span>' +
       '</span>' +
     '</div>';
@@ -101,9 +104,31 @@
   function getProjectMetric(project) {
     var metrics = Array.isArray(project.metrics) ? project.metrics : [];
     if (!metrics.length) return null;
+    var preferred = metrics.find(function (metric) {
+      var text = [
+        metric.category,
+        metric.type,
+        metric.label,
+        metric.value,
+        metric.note
+      ].join(" ").toLowerCase();
+      return /(improvement|improved|increase|increased|lift|reduction|reduced|saved|faster|accuracy|auc|growth|impact|efficiency|coverage|throughput|->|→)/.test(text);
+    });
+    if (preferred) return preferred;
     return metrics.find(function (metric) {
       return /%|\\+|x|mo|m|k|[0-9]/i.test(String(metric.value || ""));
     }) || metrics[0];
+  }
+
+  function getProjectMetricKind(metric) {
+    if (!metric) return "Metric";
+    var category = metric.category || metric.type || "";
+    if (category) return stripTags(category).slice(0, 28);
+    var text = [metric.label, metric.value, metric.note].join(" ").toLowerCase();
+    if (/(saved|faster|reduction|reduced|efficiency|runtime|->|→)/.test(text)) return "Improvement";
+    if (/(accuracy|auc|precision|recall|ndcg|roc|pr-auc)/.test(text)) return "Quality";
+    if (/(growth|lift|increase|increased|impact)/.test(text)) return "Impact";
+    return "Metric";
   }
 
   function renderProjectSkillStrip(data, project, limit) {
@@ -141,6 +166,7 @@
     if (!identity) {
       document.getElementById("hero-name").textContent = p.name || "";
       document.getElementById("hero-summary").innerHTML = summary;
+      attachHeroSummaryToggle(document.getElementById("hero-summary"));
       document.getElementById("hero-contact").innerHTML = buildContactMarkup(data);
       return;
     }
@@ -166,6 +192,41 @@
         '</div>' +
       '</div>' +
     '</article>';
+
+    attachHeroSummaryToggle(document.getElementById("hero-summary"));
+  }
+
+  function attachHeroSummaryToggle(summaryEl) {
+    if (!summaryEl || summaryEl.dataset.toggleBound === "1") return;
+
+    function evaluate() {
+      summaryEl.classList.remove("is-expanded");
+      var truncated = summaryEl.scrollHeight - summaryEl.clientHeight > 1;
+      var existingToggle = summaryEl.parentElement && summaryEl.parentElement.querySelector(".hero-summary-toggle");
+
+      if (!truncated) {
+        if (existingToggle) existingToggle.remove();
+        return;
+      }
+
+      if (existingToggle) return;
+
+      var toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "hero-summary-toggle";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.textContent = "Read more";
+      toggle.addEventListener("click", function () {
+        var expanded = summaryEl.classList.toggle("is-expanded");
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        toggle.textContent = expanded ? "Show less" : "Read more";
+      });
+      summaryEl.insertAdjacentElement("afterend", toggle);
+    }
+
+    summaryEl.dataset.toggleBound = "1";
+    evaluate();
+    window.addEventListener("resize", function () { window.requestAnimationFrame(evaluate); });
   }
 
   function getInitials(name) {
@@ -178,7 +239,7 @@
   function getProfilePhoto(data) {
     var p = data.profile || {};
     if (p.photo || p.image || p.headshot) return p.photo || p.image || p.headshot;
-    if (data.id === "aaron-li") return "User_data/Aaron Li/1775700440236.jpg";
+    if (data.id === "aaron-li") return "../AI_Resume_User_V6_Aaron/User_data/Aaron Li/1775700440236.jpg";
     return "";
   }
 
@@ -527,6 +588,7 @@
     var skillDetails = Array.isArray(data.technicalSkillDetails) ? data.technicalSkillDetails : [];
     var keywordGroups = Array.isArray(data.analystKeywordGroups) ? data.analystKeywordGroups : [];
     var links = Array.isArray(data.links) ? data.links : [];
+    var atsProfile = data.atsProfile || data.atsSignals || null;
     var atsKeywords = buildAtsKeywords(data);
     var atsOnly = data.profileMaterialsMode === "ats-only";
     var visibleCardCount = 0;
@@ -585,6 +647,11 @@
       visibleCardCount += 1;
     }
 
+    if (atsProfile) {
+      cards.push(renderAtsReadinessCard(atsProfile));
+      visibleCardCount += 1;
+    }
+
     if (atsKeywords.length) {
       cards.push('<article class="profile-material-card profile-material-card-wide ats-module">' +
         '<h3>ATS Signal Layer</h3>' +
@@ -595,6 +662,51 @@
     section.hidden = cards.length === 0;
     section.classList.toggle("is-ats-hidden-only", cards.length > 0 && visibleCardCount === 0);
     grid.innerHTML = cards.join("");
+  }
+
+  function renderAtsReadinessCard(atsProfile) {
+    var keywords = Array.isArray(atsProfile.targetKeywords) ? atsProfile.targetKeywords : [];
+    var parseSignals = Array.isArray(atsProfile.parseSignals) ? atsProfile.parseSignals : [];
+    var riskFlags = Array.isArray(atsProfile.riskFlags) ? atsProfile.riskFlags : [];
+    var split = atsProfile.split || atsProfile.cohortRole || "";
+    var role = atsProfile.targetRole || atsProfile.roleFamily || "";
+    var scoringUse = atsProfile.scoringUse || "";
+
+    return '<article class="profile-material-card profile-material-card-wide ats-readiness-module">' +
+      '<div class="ats-readiness-head">' +
+        '<h3>ATS Readiness</h3>' +
+        (split ? '<span>' + stripTags(split) + '</span>' : "") +
+      '</div>' +
+      '<div class="ats-readiness-grid">' +
+        renderAtsReadinessBlock("Target", role || "Role-specific keyword scan") +
+        renderAtsReadinessBlock("Use", scoringUse || "ATS calibration input") +
+      '</div>' +
+      (keywords.length ? '<div class="ats-chip-row">' + keywords.slice(0, 16).map(renderAtsChip).join("") + '</div>' : "") +
+      (parseSignals.length || riskFlags.length ? '<div class="ats-note-grid">' +
+        (parseSignals.length ? renderAtsNoteList("Parse signals", parseSignals) : "") +
+        (riskFlags.length ? renderAtsNoteList("Watch items", riskFlags) : "") +
+      '</div>' : "") +
+    '</article>';
+  }
+
+  function renderAtsReadinessBlock(label, value) {
+    return '<section class="ats-readiness-block">' +
+      '<span>' + label + '</span>' +
+      '<strong>' + stripTags(value) + '</strong>' +
+    '</section>';
+  }
+
+  function renderAtsChip(value) {
+    return '<span class="ats-chip">' + stripTags(value) + '</span>';
+  }
+
+  function renderAtsNoteList(title, items) {
+    return '<section class="ats-note-list">' +
+      '<h4>' + title + '</h4>' +
+      '<ul>' + items.slice(0, 4).map(function (item) {
+        return '<li>' + stripTags(item) + '</li>';
+      }).join("") + '</ul>' +
+    '</section>';
   }
 
   function buildAtsKeywords(data) {
@@ -616,6 +728,9 @@
       push(group.title);
       (group.keywords || []).forEach(push);
     });
+    var atsProfile = data.atsProfile || data.atsSignals || {};
+    (atsProfile.targetKeywords || []).forEach(push);
+    (atsProfile.parseSignals || []).forEach(push);
     (data.projects || []).forEach(function (project) {
       push(project.title);
       push(project.navTitle);

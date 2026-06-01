@@ -32,7 +32,7 @@
     ui: {
       metaTitle: "Frank Yin | AI Resume User V3",
       metaDescription: "User-facing interactive resume for Frank Yin with biostatistics research, simulation studies, and project demos.",
-      resultsTitle: "Selected Results",
+      resultsTitle: "Featured AI Projects",
       modeNote: "Show endorsement callouts in Experience and Projects.",
       experienceTitle: "Research and Professional Experience",
       projectsTitle: "Selected Research Projects",
@@ -111,7 +111,7 @@
           "Replicated and extended <strong>Q-learning frameworks</strong> for <strong>single- and two-stage decision processes</strong>, incorporating logistic treatment assignment and backward-induction algorithms for policy optimization.",
           "Built <strong>Monte Carlo simulation pipelines</strong> to evaluate <strong>bias, robustness, and convergence</strong> under model misspecification.",
           "Compared new Q-learning approaches for <strong>correlated outcomes</strong> using <strong>weighted composite outcomes, SUR, GEE, and GLS</strong> formulations.",
-          "Recovered treatment rules with <strong>high accuracy (&lt;5% error)</strong> across methods while reproducing benchmark results."
+          "Recovered treatment rules with <strong>high accuracy (under 5% error)</strong> across methods while reproducing benchmark results."
         ],
         relatedTech: ["r", "python", "sas"],
         endorsement: {
@@ -283,9 +283,9 @@
           "Comparing correlated-outcome variants such as SUR, GEE, and GLS."
         ],
         metrics: [
-          { label: "Accuracy", value: "<5% error" },
-          { label: "Scope", value: "Single and two-stage" },
-          { label: "Validation", value: "Monte Carlo" }
+          { label: "Treatment-rule error", value: "<5%", category: "Quality" },
+          { label: "Scope", value: "Single and two-stage", category: "Coverage" },
+          { label: "Validation", value: "Monte Carlo", category: "Method" }
         ],
         endorsement: {
           text: "This project shows uncommon strength in validating method behavior under misspecification instead of optimizing for a single clean scenario.",
@@ -653,9 +653,9 @@
           "Building the Shiny interface for phenotype exploration."
         ],
         metrics: [
-          { label: "Cohort", value: "300 patients" },
-          { label: "Best fit", value: "5 clusters" },
-          { label: "Silhouette", value: "0.42" }
+          { label: "Cohort", value: "300 patients", category: "Scale" },
+          { label: "Best fit", value: "5 clusters", category: "Quality" },
+          { label: "Silhouette", value: "0.42", category: "Quality" }
         ],
         endorsement: {
           text: "This work stands out because the modeling, validation, and interface all stay aligned around clinical interpretability.",

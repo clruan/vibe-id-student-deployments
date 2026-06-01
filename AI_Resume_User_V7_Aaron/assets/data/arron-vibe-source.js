@@ -575,9 +575,9 @@ window.resumeContent = {
         "Documented the blocker log, demo flow, success standards, and analyst-capability mapping."
       ],
       metrics: [
-        { label: "Prototype goal", value: "Faster first pass" },
-        { label: "Brief format", value: "3 checks" },
-        { label: "Review modes", value: "3" }
+        { label: "First-pass review time", value: "10-15m -> 1-3m", category: "Improvement" },
+        { label: "Brief format", value: "3 checks", category: "Workflow" },
+        { label: "Review modes", value: "3", category: "Coverage" }
       ],
       relatedTech: ["market-monitoring", "catalyst-tracking", "price-context", "technical-levels", "fund-flow-context", "analyst-briefing", "source-review", "ai-agent-workflow", "react", "typescript", "vite", "vercel"],
       accent: "#0f766e",
@@ -780,9 +780,9 @@ window.resumeContent = {
         "Produced a final paper that preserves evidence limitations instead of turning preliminary findings into overconfident claims."
       ],
       metrics: [
-        { label: "Hypotheses", value: "H1–H6" },
-        { label: "RQs", value: "5" },
-        { label: "Workflow steps", value: "0–8" }
+        { label: "Hypotheses", value: "H1–H6", category: "Coverage" },
+        { label: "RQs", value: "5", category: "Coverage" },
+        { label: "Workflow steps", value: "0–8", category: "Workflow" }
       ],
       relatedTech: ["hypothesis-driven-research", "evidence-tables", "counterevidence-review", "source-quality-review", "confidence-scoring", "analyst-judgment", "research-memo", "investment-banking-workflow", "excel", "word", "ai-agents", "custom-ai-skills"],
       accent: "#1d4ed8",
