@@ -12,9 +12,7 @@
     document.getElementById("projects-title").textContent = ui.projectsTitle || "Selected AI Projects";
     document.getElementById("education-title").textContent = ui.educationTitle || "Education";
     document.getElementById("awards-title").textContent = ui.awardsTitle || "Awards";
-    document.getElementById("publications-title").textContent = ui.publicationsTitle || "Publications";
     document.getElementById("coursework-title").textContent = ui.courseworkTitle || "Relevant Coursework & Applied Projects";
-    document.getElementById("profile-materials-title").textContent = ui.profileMaterialsTitle || "Profile Materials";
 
     document.getElementById("hero-contact").innerHTML = buildContactMarkup(data);
     renderSelectedResults(data);
