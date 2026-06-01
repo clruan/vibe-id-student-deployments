@@ -26,22 +26,18 @@
 
     var projects = getSelectedResultProjects(data);
     grid.innerHTML = projects.map(function (project) {
-      var metric = getProjectMetric(project);
-      var metricKind = getProjectMetricKind(metric);
+      var proof = renderResultEndorsementBadge(project, "proof");
       return '<article class="result-project-card" style="--project-accent:' + (project.accent || "#4f46e5") + '">' +
+        '<div class="result-project-top">' +
+          '<div class="result-project-skill-wrap">' + renderProjectSkillStrip(data, project, 6, { hideOverflow: true }) + '</div>' +
+          proof +
+        '</div>' +
         '<div class="result-project-main">' +
-          renderProjectSkillStrip(data, project, 5) +
-          renderResultEndorsementBadge(project) +
           '<h3>' + (project.navTitle || project.title) + '</h3>' +
           '<p class="result-project-meta">' + (project.navMeta || project.source || "Project") + '</p>' +
           '<p class="result-project-summary">' + summarizeText(project.summary || project.algorithmSummary || "", 180) + '</p>' +
         '</div>' +
-        '<div class="result-project-action">' +
-          (metric ? '<div class="result-project-metric">' +
-            '<span class="result-project-metric-kind">' + metricKind + '</span>' +
-            '<strong>' + metric.value + '</strong>' +
-            '<span>' + metric.label + '</span>' +
-          '</div>' : "") +
+        '<div class="result-project-footer">' +
           '<button class="result-demo-button" type="button" data-result-project="' + project.id + '">Check demo</button>' +
         '</div>' +
       '</article>';
@@ -54,19 +50,37 @@
     });
   }
 
-  function renderResultEndorsementBadge(project) {
+  function renderResultEndorsementBadge(project, placement) {
     var endorsement = project && project.endorsement;
     if (!endorsement) return "";
 
     var source = endorsement.company || endorsement.institution || endorsement.organization || endorsement.role || "Expert";
     var person = endorsement.by || endorsement.name || "";
-    return '<div class="result-endorsement-badge" aria-label="Expert endorsement">' +
+    var isProof = placement === "proof";
+    var className = "result-endorsement-badge" + (placement === "proof" ? " result-endorsement-proof" : "");
+    var copy = isProof
+      ? '<strong>Expert endorsement</strong>' +
+        '<span class="result-endorsement-person">' + escapeHtml(stripTags(person || source)) + '</span>' +
+        (person && source ? '<span class="result-endorsement-source">' + escapeHtml(compactEndorsementSource(source)) + '</span>' : "")
+      : '<strong>Expert endorsement</strong>' +
+        '<span>' + escapeHtml(stripTags(person ? person + " · " + source : source)) + '</span>';
+
+    return '<div class="' + className + '" aria-label="Expert endorsement">' +
       renderResultEndorsementLogo(endorsement) +
       '<span class="result-endorsement-badge-copy">' +
-        '<strong>Expert endorsement</strong>' +
-        '<span>' + stripTags(person ? person + " · " + source : source) + '</span>' +
+        copy +
       '</span>' +
     '</div>';
+  }
+
+  function compactEndorsementSource(value) {
+    return stripTags(value)
+      .replace(/\bCapital Management\b/g, "Capital Mgmt")
+      .replace(/\bGuideStone Capital Mgmt\b/g, "GuideStone CM")
+      .replace(/\bManagement\b/g, "Mgmt")
+      .replace(/\bUniversity\b/g, "Univ.")
+      .replace(/\bMinnesota\b/g, "MN")
+      .trim();
   }
 
   function renderResultEndorsementLogo(endorsement) {
@@ -95,45 +109,24 @@
   }
 
   function getSelectedResultProjects(data) {
-    var withMetrics = (data.projects || []).filter(function (project) {
-      return Array.isArray(project.metrics) && project.metrics.length;
+    var projects = data.projects || [];
+    var seen = {};
+    var ordered = projects.filter(function (project) {
+      return project.endorsement;
+    }).concat(projects).filter(function (project) {
+      if (!project || seen[project.id]) return false;
+      seen[project.id] = true;
+      return true;
     });
-    return (withMetrics.length ? withMetrics : (data.projects || [])).slice(0, 2);
+    return ordered.slice(0, 2);
   }
 
-  function getProjectMetric(project) {
-    var metrics = Array.isArray(project.metrics) ? project.metrics : [];
-    if (!metrics.length) return null;
-    var preferred = metrics.find(function (metric) {
-      var text = [
-        metric.category,
-        metric.type,
-        metric.label,
-        metric.value,
-        metric.note
-      ].join(" ").toLowerCase();
-      return /(improvement|improved|increase|increased|lift|reduction|reduced|saved|faster|accuracy|auc|growth|impact|efficiency|coverage|throughput|->|→)/.test(text);
-    });
-    if (preferred) return preferred;
-    return metrics.find(function (metric) {
-      return /%|\\+|x|mo|m|k|[0-9]/i.test(String(metric.value || ""));
-    }) || metrics[0];
-  }
-
-  function getProjectMetricKind(metric) {
-    if (!metric) return "Metric";
-    var category = metric.category || metric.type || "";
-    if (category) return stripTags(category).slice(0, 28);
-    var text = [metric.label, metric.value, metric.note].join(" ").toLowerCase();
-    if (/(saved|faster|reduction|reduced|efficiency|runtime|->|→)/.test(text)) return "Improvement";
-    if (/(accuracy|auc|precision|recall|ndcg|roc|pr-auc)/.test(text)) return "Quality";
-    if (/(growth|lift|increase|increased|impact)/.test(text)) return "Impact";
-    return "Metric";
-  }
-
-  function renderProjectSkillStrip(data, project, limit) {
+  function renderProjectSkillStrip(data, project, limit, options) {
     if (!ns.skills || !ns.skills.getProjectSkillItems || !ns.skills.renderSkillPills) return "";
-    return ns.skills.renderSkillPills(ns.skills.getProjectSkillItems(data, project), { limit: limit || 5 });
+    return ns.skills.renderSkillPills(
+      ns.skills.getProjectSkillItems(data, project),
+      Object.assign({ limit: limit || 5 }, options || {})
+    );
   }
 
   function summarizeText(value, maxLength) {
@@ -324,8 +317,9 @@
             '<p class="experience-dates">' + item.dates + '</p>' +
           '</div>' +
           renderExperiencePreview(item) +
+          renderExperienceKeywordRail(data, item, expId) +
+          renderExperienceDrawer(data, item, expId) +
           renderExperienceSkillStrip(data, item, expId) +
-          renderExperienceDrawer(item) +
           renderExperienceContext(data, item) +
           relatedProjects +
           endorsement +
@@ -406,6 +400,16 @@
       drawer.addEventListener("click", function (event) {
         event.stopPropagation();
       });
+
+      var summary = drawer.querySelector("summary");
+      var item = drawer.closest(".experience-item");
+      if (!summary || !item) return;
+
+      summary.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleExperienceDrawer(item, drawer);
+      });
     });
   }
 
@@ -424,18 +428,331 @@
   function renderExperiencePreview(item) {
     var first = Array.isArray(item.bullets) && item.bullets.length ? item.bullets[0] : "";
     if (!first) return "";
-    return '<p class="experience-preview">' + stripTags(first) + '</p>';
+    return '<ul class="experience-preview-list">' +
+      '<li>' + first + '</li>' +
+    '</ul>';
   }
 
-  function renderExperienceDrawer(item) {
-    var bullets = Array.isArray(item.bullets) ? item.bullets.slice(1) : [];
+  function renderExperienceKeywordRail(data, item, expId) {
+    var bullets = getHiddenBulletModels(data, item);
     if (!bullets.length) return "";
-    return '<details class="experience-detail-drawer">' +
+
+    return '<div class="experience-keyword-rail" aria-label="Hidden bullet keywords">' +
+      bullets.map(function (bullet, index) {
+        return '<span class="exp-keyword-token" data-exp-keyword="' + expId + '" data-keyword-index="' + index + '">' + bullet.keyword + '</span>';
+      }).join("") +
+    '</div>';
+  }
+
+  function renderExperienceDrawer(data, item, expId) {
+    var bullets = getHiddenBulletModels(data, item);
+    if (!bullets.length) return "";
+
+    return '<details class="experience-detail-drawer" data-exp-drawer="' + expId + '">' +
       '<summary>Read more</summary>' +
       '<ul class="compact-list experience-extra-list">' +
-        bullets.map(function (b) { return '<li>' + stripTags(b) + '</li>'; }).join("") +
+        bullets.map(function (bullet, index) {
+          return '<li>' + renderExpandedBulletText(bullet, expId, index) + '</li>';
+        }).join("") +
       '</ul>' +
     '</details>';
+  }
+
+  function getHiddenBulletModels(data, item) {
+    var bullets = Array.isArray(item.bullets) ? item.bullets.slice(1) : [];
+    return bullets.map(function (bullet, index) {
+      var model = extractBulletKeyword(data, bullet, index);
+      return {
+        text: stripTags(bullet),
+        keyword: model.keyword,
+        matchText: model.matchText,
+        index: index,
+        score: ns.skills && ns.skills.scoreTextForJob
+          ? ns.skills.scoreTextForJob(data, model.keyword + " " + stripTags(bullet))
+          : 0
+      };
+    }).sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.index - b.index;
+    });
+  }
+
+  function extractBulletKeyword(data, value, fallbackIndex) {
+    var html = String(value || "");
+    var plain = stripTags(html);
+    var matches = ns.skills && ns.skills.getJobKeywordMatches
+      ? ns.skills.getJobKeywordMatches(data, html)
+      : [];
+    var adjacentMatches = findAdjacentKeywordMatch(plain, matches);
+    if (adjacentMatches) return adjacentMatches;
+
+    for (var i = 0; i < matches.length; i += 1) {
+      var match = findTextMatch(plain, matches[i]);
+      if (match) {
+        return {
+          keyword: polishKeywordLabel(matches[i]),
+          matchText: plain.slice(match.start, match.end)
+        };
+      }
+    }
+
+    var strongMatch = html.match(/<strong[^>]*>(.*?)<\/strong>/i);
+    var preferred = strongMatch ? stripTags(strongMatch[1]) : "";
+    var text = stripTags(preferred || html);
+    var stop = {
+      and: true, the: true, for: true, with: true, from: true, into: true,
+      using: true, across: true, through: true, that: true, this: true,
+      developed: true, built: true, created: true, conducted: true, performed: true,
+      implemented: true, designed: true, analyzed: true, supported: true
+    };
+
+    var words = text.split(/[^A-Za-z0-9+.-]+/).filter(function (word) {
+      return word && word.length > 2 && !stop[word.toLowerCase()];
+    });
+
+    if (!words.length) {
+      return {
+        keyword: "Signal" + (fallbackIndex + 1),
+        matchText: ""
+      };
+    }
+    words.sort(function (a, b) {
+      return b.length - a.length;
+    });
+    return {
+      keyword: polishKeywordLabel(words[0]),
+      matchText: words[0]
+    };
+  }
+
+  function findAdjacentKeywordMatch(text, matches) {
+    if (!matches || matches.length < 2) return null;
+
+    var top = matches.slice(0, 2);
+    var label = top.map(polishKeywordLabel).join(" + ");
+    var match = findTextMatch(text, label);
+    if (!match) return null;
+
+    return {
+      keyword: label,
+      matchText: text.slice(match.start, match.end)
+    };
+  }
+
+  function renderExpandedBulletText(bullet, expId, index) {
+    var text = bullet.text || "";
+    var match = findTextMatch(text, bullet.matchText || bullet.keyword);
+    var token = '<span class="experience-expanded-keyword" data-expanded-keyword="' + expId + '" data-keyword-index="' + index + '">' + bullet.keyword + '</span>';
+
+    if (!match) {
+      return token + ' <span>' + escapeHtml(text) + '</span>';
+    }
+
+    return '<span>' + escapeHtml(text.slice(0, match.start)) + '</span>' +
+      token +
+      '<span>' + escapeHtml(text.slice(match.end)) + '</span>';
+  }
+
+  function findTextMatch(text, query) {
+    var source = String(text || "");
+    var needle = String(query || "").trim();
+    if (!source || !needle) return null;
+
+    if (normalizeKeywordComparable(needle).length <= 2) {
+      return findShortTokenMatch(source, needle);
+    }
+
+    var direct = source.toLowerCase().indexOf(needle.toLowerCase());
+    if (direct !== -1) return { start: direct, end: direct + needle.length };
+
+    return findNormalizedTextMatch(source, needle);
+  }
+
+  function findShortTokenMatch(text, query) {
+    var normalized = normalizeKeywordComparable(query);
+    if (!normalized) return null;
+
+    var pattern = new RegExp("(^|[^A-Za-z0-9])(" + escapeRegex(query) + ")(?=$|[^A-Za-z0-9])", "i");
+    var match = pattern.exec(text);
+    if (!match) return null;
+
+    var start = match.index + match[1].length;
+    return { start: start, end: start + match[2].length };
+  }
+
+  function findNormalizedTextMatch(text, query) {
+    var source = buildComparableIndex(text);
+    var needle = normalizeKeywordComparable(query);
+    if (!needle) return null;
+
+    var start = source.normalized.indexOf(needle);
+    if (start === -1) return null;
+
+    var end = start + needle.length - 1;
+    return {
+      start: source.map[start],
+      end: source.map[end] + 1
+    };
+  }
+
+  function buildComparableIndex(text) {
+    var normalized = "";
+    var map = [];
+    String(text || "").split("").forEach(function (char, index) {
+      if (!/[A-Za-z0-9]/.test(char)) return;
+      normalized += char.toLowerCase();
+      map.push(index);
+    });
+    return { normalized: normalized, map: map };
+  }
+
+  function normalizeKeywordComparable(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
+
+  function escapeRegex(value) {
+    return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function polishKeywordLabel(value) {
+    var text = String(value || "")
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    var acronym = {
+      ai: true, ats: true, auc: true, cnn: true, cox: true, dcf: true,
+      ehr: true, etl: true, gee: true, git: true, html: true, iou: true,
+      jd: true, kg: true, lbo: true, llm: true, mna: true, nd2: true,
+      nlp: true, png: true, pr: true, qc: true, rag: true, redcap: true,
+      roc: true, sas: true, sql: true, ui: true, unet: true, ux: true,
+      vte: true
+    };
+
+    text = text.split(" ").map(function (word) {
+      var lower = word.toLowerCase();
+      if (acronym[lower]) return word.toUpperCase();
+      if (/^[A-Z0-9.+/]+$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(" ");
+
+    text = text
+      .replace(/\bKaplan Meier\b/g, "Kaplan-Meier")
+      .replace(/\bMed SAM\b/g, "Med-SAM")
+      .replace(/\bDeepLabv3\b/g, "DeepLabV3")
+      .replace(/\bQ Learning\b/g, "Q-learning");
+
+    return text.length > 28 ? text.slice(0, 27).replace(/\s+\S*$/, "") + "..." : text;
+  }
+
+  function toggleExperienceDrawer(item, drawer) {
+    var opening = !drawer.open;
+    if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      drawer.open = opening;
+      item.classList.toggle("is-detail-open", opening);
+      return;
+    }
+
+    animateExperienceKeywords(item, drawer, opening);
+  }
+
+  function animateExperienceKeywords(item, drawer, opening) {
+    var sourceTokens = Array.prototype.slice.call(item.querySelectorAll(".exp-keyword-token"));
+    var targetTokens = Array.prototype.slice.call(drawer.querySelectorAll(".experience-expanded-keyword"));
+
+    if (!sourceTokens.length || !targetTokens.length) {
+      drawer.open = opening;
+      item.classList.toggle("is-detail-open", opening);
+      return;
+    }
+
+    var fromTokens;
+    var toTokens;
+
+    if (opening) {
+      fromTokens = sourceTokens;
+      drawer.open = true;
+      item.classList.add("is-detail-open");
+      toTokens = targetTokens;
+    } else {
+      fromTokens = targetTokens;
+      toTokens = sourceTokens;
+    }
+
+    requestAnimationFrame(function () {
+      var flights = [];
+      fromTokens.forEach(function (fromToken, index) {
+        var toToken = toTokens[index];
+        if (!toToken) return;
+
+        var fromRect = fromToken.getBoundingClientRect();
+        var toRect = toToken.getBoundingClientRect();
+        var clone = fromToken.cloneNode(true);
+        clone.className = "experience-keyword-flight " + (clone.className || "");
+        clone.style.position = "fixed";
+        clone.style.left = fromRect.left + "px";
+        clone.style.top = fromRect.top + "px";
+        clone.style.width = fromRect.width + "px";
+        clone.style.height = fromRect.height + "px";
+        clone.style.zIndex = "10030";
+        clone.style.pointerEvents = "none";
+        document.body.appendChild(clone);
+        flights.push({ clone: clone, rect: toRect });
+      });
+
+      sourceTokens.concat(targetTokens).forEach(function (token) {
+        token.style.visibility = "hidden";
+      });
+
+      var remaining = flights.length;
+      if (!remaining) {
+        finishExperienceKeywordAnimation();
+        return;
+      }
+
+      flights.forEach(function (flight, index) {
+        window.gsap.to(flight.clone, Object.assign(buildKeywordMotion(opening, index, flight.rect), {
+          onComplete: function () {
+            flight.clone.remove();
+            remaining -= 1;
+            if (!remaining) {
+              finishExperienceKeywordAnimation();
+            }
+          }
+        }));
+      });
+
+      function finishExperienceKeywordAnimation() {
+        sourceTokens.concat(targetTokens).forEach(function (token) {
+          token.style.visibility = "";
+        });
+
+        if (!opening) {
+          drawer.open = false;
+          item.classList.remove("is-detail-open");
+        }
+      }
+    });
+  }
+
+  function buildKeywordMotion(opening, index, rect) {
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      scale: opening ? 1.03 : 0.98,
+      duration: 0.42 + index * 0.025,
+      ease: "power2.inOut"
+    };
   }
 
   function renderExperienceSkillStrip(data, item, expId) {

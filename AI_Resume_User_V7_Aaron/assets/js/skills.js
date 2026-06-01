@@ -48,6 +48,154 @@
       .replace(/^-+|-+$/g, "");
   }
 
+  function getMeaningfulTokens(value) {
+    var stop = {
+      a: true, an: true, and: true, are: true, as: true, at: true, by: true,
+      for: true, from: true, in: true, into: true, of: true, on: true, or: true,
+      the: true, to: true, with: true, using: true, profile: true, role: true,
+      analyst: true, assistant: true, engineer: true, scientist: true
+    };
+
+    return normalizeToken(value).split("-").filter(function (token) {
+      return token && token.length > 1 && !stop[token];
+    });
+  }
+
+  function getAtsProfile(data) {
+    return (data && (data.atsProfile || data.atsSignals)) || {};
+  }
+
+  function getJobSources(data) {
+    var ats = getAtsProfile(data);
+    var profile = (data && data.profile) || {};
+    var directory = (data && data.directory) || {};
+    var sources = [];
+
+    [
+      ats.targetRole,
+      ats.jobTitle,
+      ats.jdTitle,
+      ats.jobDescription,
+      ats.jdText,
+      data && data.targetRole,
+      profile.targetRole,
+      directory.role,
+      directory.summary
+    ].forEach(function (value) {
+      if (value) sources.push({ value: value, isKeyword: false });
+    });
+
+    if (Array.isArray(ats.targetKeywords)) {
+      ats.targetKeywords.forEach(function (value) {
+        if (value) sources.push({ value: value, isKeyword: true });
+      });
+    }
+
+    if (Array.isArray(ats.keywordGroups)) {
+      ats.keywordGroups.forEach(function (group) {
+        (group.keywords || []).forEach(function (value) {
+          if (value) sources.push({ value: value, isKeyword: true });
+        });
+      });
+    }
+
+    return sources;
+  }
+
+  function getJobTermModels(data) {
+    var seen = {};
+    return getJobSources(data).map(function (source) {
+      var label = String(source.value || "").replace(/<[^>]*>/g, "").trim();
+      var normalized = normalizeToken(label);
+      if (!label || !normalized || seen[normalized]) return null;
+      seen[normalized] = true;
+      return {
+        label: label,
+        normalized: normalized,
+        tokens: getMeaningfulTokens(label),
+        isKeyword: source.isKeyword
+      };
+    }).filter(Boolean);
+  }
+
+  function scoreTextForJob(data, value) {
+    var terms = getJobTermModels(data);
+    if (!terms.length) return 0;
+
+    var normalized = normalizeToken(value);
+    var tokens = getMeaningfulTokens(value);
+    var rawTokens = normalizeToken(value).split("-").filter(Boolean);
+    if (!normalized || !rawTokens.length) return 0;
+
+    var tokenSet = {};
+    tokens.forEach(function (token) { tokenSet[token] = true; });
+    var rawTokenSet = {};
+    rawTokens.forEach(function (token) { rawTokenSet[token] = true; });
+
+    return terms.reduce(function (score, term) {
+      var weight = term.isKeyword ? 1 : 0.35;
+      if (normalized === term.normalized) return score + 1000 * weight;
+
+      if (term.normalized.length <= 2) {
+        if (rawTokenSet[term.normalized]) score += 720 * weight;
+        return score;
+      }
+
+      if (normalized.indexOf(term.normalized) !== -1 || term.normalized.indexOf(normalized) !== -1) {
+        score += 720 * weight;
+      }
+
+      var overlap = term.tokens.filter(function (token) { return tokenSet[token]; }).length;
+      if (overlap) {
+        var coverage = overlap / Math.max(term.tokens.length, 1);
+        score += (overlap * 90 + coverage * 180) * weight;
+      }
+      return score;
+    }, 0);
+  }
+
+  function rankSkillEntriesForJob(data, entries) {
+    if (!getJobTermModels(data).length) return entries;
+
+    return entries.map(function (entry, index) {
+      var text = [
+        entry.label,
+        entry.item && entry.item.id,
+        entry.item && entry.item.label
+      ].filter(Boolean).join(" ");
+      return {
+        entry: entry,
+        index: index,
+        score: scoreTextForJob(data, text)
+      };
+    }).sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.index - b.index;
+    }).map(function (item) {
+      return item.entry;
+    });
+  }
+
+  function getJobKeywordMatches(data, value) {
+    var normalized = normalizeToken(value);
+    if (!normalized) return [];
+    var rawTokenSet = {};
+    normalized.split("-").filter(Boolean).forEach(function (token) {
+      rawTokenSet[token] = true;
+    });
+
+    return getJobTermModels(data)
+      .filter(function (term) {
+        if (!term.isKeyword) return false;
+        if (term.normalized.length <= 2) return rawTokenSet[term.normalized] || normalized === term.normalized;
+        return normalized.indexOf(term.normalized) !== -1;
+      })
+      .sort(function (a, b) {
+        return b.normalized.length - a.normalized.length;
+      })
+      .map(function (term) { return term.label; });
+  }
+
   function itemKey(group, item) {
     return group + ":" + normalizeToken(item.id || item.label);
   }
@@ -109,9 +257,10 @@
 
   function getIntroSkillItems(data, group) {
     var all = getAllSkillItems(data).filter(function (entry) { return entry.group === group; });
-    return all.filter(function (entry) {
+    var related = all.filter(function (entry) {
       return hasProjectRelation(data, entry) || hasExperienceRelation(data, entry);
     });
+    return rankSkillEntriesForJob(data, related);
   }
 
   function hasProjectRelation(data, entry) {
@@ -311,15 +460,17 @@
   }
 
   function getProjectSkillItems(data, project) {
-    return getAllSkillItems(data).filter(function (entry) {
+    var matches = getAllSkillItems(data).filter(function (entry) {
       return entryMatchesProject(entry, project);
     });
+    return rankSkillEntriesForJob(data, matches);
   }
 
   function getExperienceSkillItems(data, exp, expId) {
-    return getAllSkillItems(data).filter(function (entry) {
+    var matches = getAllSkillItems(data).filter(function (entry) {
       return entryMatchesExperience(data, entry, exp, expId);
     });
+    return rankSkillEntriesForJob(data, matches);
   }
 
   function entryMatchesProject(entry, project) {
@@ -374,14 +525,16 @@
     var hidden = uniqueItems.slice(visibleLimit);
     if (!visible.length) return "";
 
+    var showOverflow = hidden.length && !(options && options.hideOverflow);
+
     return '<div class="project-skill-strip" aria-label="Related skills">' +
       visible.map(function (entry) {
         return renderSkillToken(entry, selectedKeys.indexOf(entry.key) !== -1, "project-skill-pill");
       }).join("") +
-      hidden.map(function (entry) {
+      (showOverflow ? hidden.map(function (entry) {
         return renderSkillToken(entry, selectedKeys.indexOf(entry.key) !== -1, "project-skill-pill project-skill-pill-extra");
-      }).join("") +
-      (hidden.length ? '<button class="project-skill-pill project-skill-pill-more" type="button" data-skill-strip-expand data-skill-overflow-count="' + hidden.length + '" aria-expanded="false">+' + hidden.length + '</button>' : "") +
+      }).join("") : "") +
+      (showOverflow ? '<button class="project-skill-pill project-skill-pill-more" type="button" data-skill-strip-expand data-skill-overflow-count="' + hidden.length + '" aria-expanded="false">+' + hidden.length + '</button>' : "") +
     '</div>';
   }
 
@@ -479,6 +632,8 @@
     getFilteredExperience: getFilteredExperience,
     getProjectSkillItems: getProjectSkillItems,
     getExperienceSkillItems: getExperienceSkillItems,
-    renderSkillPills: renderSkillPills
+    renderSkillPills: renderSkillPills,
+    scoreTextForJob: scoreTextForJob,
+    getJobKeywordMatches: getJobKeywordMatches
   };
 })();

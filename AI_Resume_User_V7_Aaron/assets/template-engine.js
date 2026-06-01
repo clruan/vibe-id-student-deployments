@@ -100,7 +100,7 @@
   }
 
   var profileIds = orderedProfileIds();
-  var activeProfileId = getProfileIdFromUrl() || normalizeProfileId("aaron") || profileIds[0];
+  var activeProfileId = getProfileIdFromUrl() || normalizeProfileId("duke") || profileIds[0];
   var activeProfile = activeProfileId ? normalizeData(registry[activeProfileId], activeProfileId) : null;
 
   window.resumeProgram = {
