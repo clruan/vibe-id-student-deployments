@@ -223,6 +223,6 @@
 
   function rewriteAaronPath(path) {
     if (!path || typeof path !== "string") return path;
-    return path.replace("../User_data/Aaron Li/", "../Vibe ID_AL (student)/User_data/Aaron Li/");
+    return path.replace(/^(\.\.\/)+/, "");
   }
 })();
