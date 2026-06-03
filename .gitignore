@@ -1,4 +1,4 @@
-# Keep this repository focused on the two Vercel deploy roots.
+# Keep this repository focused on approved deploy and experiment roots.
 /*
 
 !/Vibe ID_AL (student)/
@@ -7,6 +7,10 @@
 !/AI_Resume_User_V7/**
 !/AI_Resume_User_V7_Aaron/
 !/AI_Resume_User_V7_Aaron/**
+!/AI_Resume_User_V7_AG/
+!/AI_Resume_User_V7_AG/**
+!/AI_Resume_User_V7_Kailin/
+!/AI_Resume_User_V7_Kailin/**
 !/api/
 !/api/**
 !/README.md

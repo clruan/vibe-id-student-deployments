@@ -232,7 +232,6 @@
   function getProfilePhoto(data) {
     var p = data.profile || {};
     if (p.photo || p.image || p.headshot) return p.photo || p.image || p.headshot;
-    if (data.id === "aaron-li") return "../AI_Resume_User_V6_Aaron/User_data/Aaron Li/1775700440236.jpg";
     return "";
   }
 

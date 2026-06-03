@@ -10,6 +10,7 @@
   registerDuke();
   registerFrankMetadata();
   registerAaronFromVibeSource();
+  registerZach();
 
   Object.assign(aliases, {
     duke: "duke-ruan",
@@ -20,9 +21,7 @@
     "aaron-li": "aaron-li",
     arron: "aaron-li",
     "arron-li": "aaron-li",
-    kailin: "kailin-liu",
-    "kailin-liu": "kailin-liu",
-    kailinliu: "kailin-liu"
+    zach: "zach-zhou"
   });
 
   function registerDuke() {
@@ -1082,5 +1081,37 @@
   function rewriteAaronPath(path) {
     if (!path || typeof path !== "string") return path;
     return path.replace("../User_data/Aaron Li/", "../Vibe ID_AL (student)/User_data/Aaron Li/");
+  }
+
+  function registerZach() {
+    // Deepseek data will be under window.profileData_zach
+    var data = window.profileData_zach;
+    if (!data) return;
+
+    registry["zach"] = {
+      id: "zach",
+      order: 4,
+      profile: {
+        name: data.name || "Zach Zhou",
+        shortName: data.name || "Zach Zhou",
+        summary: data.summary || "Quantitative Researcher & AI Engineer",
+        summaryHtml: (data.summary || "Quantitative Researcher & AI Engineer")
+      },
+      results: [],
+      experience: data.experience || [],
+      projects: data.projects || [],
+      quantToolkit: [],
+      stack: [],
+      education: [],
+      awards: [],
+      publications: [],
+      ui: {
+        metaTitle: "Zach Zhou | AI Resume",
+        metaDescription: "Zach Zhou Profile",
+        resultsTitle: "Featured AI Projects",
+        experienceTitle: "Research and Professional Experience",
+        projectsTitle: "Selected Projects"
+      }
+    };
   }
 })();

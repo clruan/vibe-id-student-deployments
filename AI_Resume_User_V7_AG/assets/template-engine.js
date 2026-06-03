@@ -57,7 +57,6 @@
     data.quantToolkit = Array.isArray(data.quantToolkit) ? data.quantToolkit : [];
     data.experience = Array.isArray(data.experience) ? data.experience : [];
     data.education = Array.isArray(data.education) ? data.education : [];
-    data.coursework = Array.isArray(data.coursework) ? data.coursework : [];
     data.awards = Array.isArray(data.awards) ? data.awards : [];
     data.publications = Array.isArray(data.publications) ? data.publications : [];
     data.peerEvaluations = Array.isArray(data.peerEvaluations) ? data.peerEvaluations : [];
@@ -67,27 +66,6 @@
       item.id = item.id || "exp-" + index;
       item.relatedTech = Array.isArray(item.relatedTech) ? item.relatedTech : [];
       item.relatedProjects = Array.isArray(item.relatedProjects) ? item.relatedProjects : [];
-    });
-
-    data.education.forEach(function (item) {
-      item.school = item.school || item.institution || item.organization || "";
-      item.institution = item.institution || item.school;
-      item.note = item.note || item.details || item.location || "";
-      item.details = item.details || item.note;
-      item.dates = item.dates || item.date || "";
-      item.degree = item.degree || item.program || "";
-    });
-
-    data.awards.forEach(function (item) {
-      item.title = item.title || item.name || "Award";
-      item.org = item.org || item.issuer || item.organization || item.detail || "";
-      item.amount = item.amount || item.year || item.date || "";
-    });
-
-    data.coursework.forEach(function (item, index) {
-      item.id = item.id || "coursework-" + index;
-      item.title = item.title || item.name || "Applied coursework";
-      item.bullets = Array.isArray(item.bullets) ? item.bullets : [];
     });
 
     data.projects.forEach(function (project, index) {
@@ -122,10 +100,7 @@
   }
 
   var profileIds = orderedProfileIds();
-  var activeProfileId = getProfileIdFromUrl() ||
-    normalizeProfileId(window.aiResumeDefaultProfile) ||
-    normalizeProfileId("duke") ||
-    profileIds[0];
+  var activeProfileId = getProfileIdFromUrl() || normalizeProfileId("duke") || profileIds[0];
   var activeProfile = activeProfileId ? normalizeData(registry[activeProfileId], activeProfileId) : null;
 
   window.resumeProgram = {

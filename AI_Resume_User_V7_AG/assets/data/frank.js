@@ -111,7 +111,7 @@
           "Replicated and extended <strong>Q-learning frameworks</strong> for <strong>single- and two-stage decision processes</strong>, incorporating logistic treatment assignment and backward-induction algorithms for policy optimization.",
           "Built <strong>Monte Carlo simulation pipelines</strong> to evaluate <strong>bias, robustness, and convergence</strong> under model misspecification.",
           "Compared new Q-learning approaches for <strong>correlated outcomes</strong> using <strong>weighted composite outcomes, SUR, GEE, and GLS</strong> formulations.",
-          "Recovered treatment rules with <strong>high accuracy (under 5% error)</strong> across methods while reproducing benchmark results."
+          "Recovered treatment rules with <strong>high accuracy (&lt;5% error)</strong> across methods while reproducing benchmark results."
         ],
         relatedTech: ["r", "python", "sas"],
         endorsement: {

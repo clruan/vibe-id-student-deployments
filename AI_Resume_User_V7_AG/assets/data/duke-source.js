@@ -13,7 +13,6 @@
       location: "Minneapolis, MN",
       phone: "+1 651-280-7402",
       email: "ruanx070@umn.edu",
-      linkedin: "https://www.linkedin.com/in/conglin-ruan-6587b8126/",
       website: "https://clruan.github.io",
       github: "https://github.com/clruan",
       scholar:
@@ -25,7 +24,6 @@
     },
 
     links: [
-      { label: "LinkedIn", value: "linkedin.com/in/conglin-ruan-6587b8126", href: "https://www.linkedin.com/in/conglin-ruan-6587b8126/" },
       { label: "Website", value: "clruan.github.io", href: "https://clruan.github.io" },
       { label: "GitHub", value: "github.com/clruan", href: "https://github.com/clruan" },
       { label: "Scholar", value: "View publications", href: "https://scholar.google.com/citations?user=0MH_0RAAAAAJ&hl=en&authuser=1" },
