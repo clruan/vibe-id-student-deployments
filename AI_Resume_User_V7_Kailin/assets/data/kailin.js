@@ -48,7 +48,7 @@
     hideProfileSourceLinks: true,
     hideAtsKeywordLayer: true,
     atsProfile: {
-      title: "Role Alignment",
+      title: "ATS",
       split: "Kailin",
       targetRole: "APMM / Product Marketing Manager / Product Strategy & Operations",
       hideDiagnosticNotes: true,
@@ -67,6 +67,11 @@
         "Google Analytics",
         "YouTube Analytics",
         "Excel",
+        "models",
+        "visibility",
+        "35% increase",
+        "SWOT",
+        "validation",
         "Figma",
         "SQL",
         "cross-functional collaboration",
@@ -150,8 +155,9 @@
         dates: "Jul 2024 - Oct 2024",
         bullets: [
           "Sourced and built partnerships with 70+ YouTube influencers for AI products such as LoudMe.Ai, leading influencer selection, pricing negotiation, and content briefing.",
-          "Used Google Analytics and YouTube Analytics to analyze traffic sources, user behavior, and registration conversion by influencer; tested content framing and posting timing through A/B testing.",
-          "Built Excel models comparing CTR, CPM, and conversion across creators, supporting budget allocation and reducing CPM to below $15 while generating 2,500+ registrations and 650,000+ views."
+          "Used Google Analytics to analyze traffic sources, user behavior, and registration conversion by influencer; paired creator reporting with A/B testing on content framing and posting timing.",
+          "Built Excel tables comparing CTR, CPM, and conversion across creators to summarize test results.",
+          "Built creator performance models to support budget allocation and reduce CPM to below $15 while generating 2,500+ registrations and 650,000+ views."
         ],
         relatedTech: ["product-marketing", "growth-marketing", "campaign-measurement", "a-b-testing", "kpi-tracking", "pricing-analysis", "google-analytics", "youtube-analytics", "excel"],
         relatedProjects: ["ai-travel-planner"]
@@ -273,7 +279,7 @@
       awardsTitle: "Highlights",
       publicationsTitle: "Source",
       courseworkTitle: "Relevant Coursework",
-      profileMaterialsTitle: "Role Fit"
+      profileMaterialsTitle: "ATS"
     },
     projects: [
       {

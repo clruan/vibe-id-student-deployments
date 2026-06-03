@@ -88,7 +88,7 @@
     ],
 
     atsProfile: {
-      title: "Role Alignment",
+      title: "ATS",
       split: "Kailin",
       targetRole: "Associate Product Marketing Manager / Product Marketing Manager / Product Strategy and Operations",
       hideDiagnosticNotes: true,
@@ -102,6 +102,13 @@
         "campaign measurement",
         "KPI tracking",
         "A/B testing",
+        "Google Analytics",
+        "Excel",
+        "models",
+        "visibility",
+        "35% increase",
+        "SWOT",
+        "validation",
         "market research",
         "competitive benchmarking",
         "product positioning",
@@ -152,8 +159,9 @@
         dates: "Jul 2024 - Oct 2024",
         bullets: [
           "Sourced and built partnerships with <strong>70+ YouTube influencers</strong> for AI products such as LoudMe.Ai, leading creator selection, multi-round pricing negotiations, and content briefing.",
-          "Used <strong>Google Analytics</strong> and <strong>YouTube Analytics</strong> to analyze traffic sources, user behavior, and registration conversion by influencer; conducted <strong>A/B testing</strong> on content framing and posting timing.",
-          "Built Excel models comparing CTR, CPM, and conversion across creators, supporting budget allocation and reducing CPM to <strong>under $15</strong> while generating <strong>2,500+ registrations</strong> and <strong>650,000+ views</strong>."
+          "Used <strong>Google Analytics</strong> to analyze traffic sources, user behavior, and registration conversion by influencer; paired creator reporting with <strong>A/B testing</strong> on content framing and posting timing.",
+          "Built <strong>Excel</strong> tables comparing CTR, CPM, and conversion across creators to summarize test results.",
+          "Built creator performance models to support budget allocation and reduce CPM to <strong>under $15</strong> while generating <strong>2,500+ registrations</strong> and <strong>650,000+ views</strong>."
         ],
         relatedTech: ["google-analytics", "youtube-analytics", "excel"],
         relatedProjects: ["cocosoft-growth"]
@@ -292,7 +300,7 @@
       awardsTitle: "Capability Themes",
       publicationsTitle: "Source",
       courseworkTitle: "Relevant Coursework & Applied Projects",
-      profileMaterialsTitle: "Role Fit",
+      profileMaterialsTitle: "ATS",
       chatTitle: "Ask about Kailin",
       chatPlaceholder: "Ask about Kailin's product marketing projects...",
       chatGreeting: "Hi! I can answer questions about Kailin's AI product work, marketing analytics, GTM experience, education, and projects."
