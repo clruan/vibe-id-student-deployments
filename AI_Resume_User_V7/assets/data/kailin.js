@@ -1,7 +1,6 @@
 /*
  * Kailin Liu - V7 source-backed profile.
- * Source boundary: User_data/Kailin resume PDF, AI product worksheet, and
- * provided Lumina screenshots.
+ * Source boundary: provided Kailin resume PDF and Lumina screenshots.
  */
 (function () {
   var registry = window.aiResumeData || (window.aiResumeData = {});
@@ -18,6 +17,7 @@
       phone: "(805) 331-8021",
       email: "kailinliu06@gmail.com",
       linkedin: "https://www.linkedin.com/in/kailinliu1105/",
+      photo: "assets/media/kailin/Kailin_Liu_portrait.jpeg",
       targetRole: "Product marketing, AI product strategy, and growth analytics profile",
       summary:
         "Marketing Science graduate student at Columbia Business School with source-backed experience in AI product marketing, user research, growth analytics, and GTM execution. I connect customer insight, campaign measurement, product positioning, and AI-assisted prototyping into projects that are concrete enough to inspect.",
@@ -32,8 +32,7 @@
     links: [
       { label: "Email", value: "kailinliu06@gmail.com", href: "mailto:kailinliu06@gmail.com" },
       { label: "LinkedIn", value: "linkedin.com/in/kailinliu1105", href: "https://www.linkedin.com/in/kailinliu1105/" },
-      { label: "Resume PDF", value: "Open resume", href: "../User_data/Kailin/Kailin Liu_Resume.pdf" },
-      { label: "Product worksheet", value: "Open source file", href: "../User_data/Kailin/7SpPKFRzQKpaPMSuiXVE_AI%E4%BA%A7%E5%93%81%E5%88%9B%E6%96%B0%E5%AE%9E%E9%AA%8C%E5%AE%A4_Worksheet_%E6%9C%80%E7%BB%88%E7%89%88.xlsx" }
+      { label: "Resume PDF", value: "Open resume", href: "../User_data/Kailin/Kailin Liu_Resume.pdf" }
     ],
 
     skillLayout: {
@@ -44,7 +43,9 @@
       ],
       hideExperienceContext: true
     },
-    profileMaterialsMode: "ats-only",
+    profileMaterialsMode: "role-alignment",
+    hideProfileSourceLinks: true,
+    hideAtsKeywordLayer: true,
 
     analyticalSkills: [
       { label: "Go-to-market strategy", relatedProjects: ["lumina-ai-product", "ai-travel-app", "cocosoft-growth"], relatedExp: ["exp-cocosoft", "exp-raveival"] },
@@ -82,15 +83,15 @@
 
     licensesCertifications: [
       { id: "tech-management", label: "Technology Management Certificate", color: "#0f766e" },
-      { id: "gre-331", label: "GRE 331", color: "#1d4ed8" },
       { id: "columbia-ai-club", label: "Columbia AI Club", color: "#7c3aed" },
       { id: "columbia-tech-club", label: "Columbia Technology Club", color: "#2563eb" }
     ],
 
     atsProfile: {
-      split: "New V7 profile",
+      title: "Role Alignment",
+      split: "Kailin",
       targetRole: "Associate Product Marketing Manager / Product Marketing Manager / Product Strategy and Operations",
-      scoringUse: "Use Kailin as a marketing and AI-product Vibe ID profile with source-backed projects and screenshot evidence.",
+      hideDiagnosticNotes: true,
       targetKeywords: [
         "product marketing",
         "go-to-market",
@@ -221,7 +222,7 @@
         location: "New York, NY",
         degree: "M.S. in Marketing Science",
         dates: "Expected Dec 2026",
-        details: "GRE: 331; member of Technology Club, Artificial Intelligence Club, and Columbia Entrepreneurs Organization."
+        details: "Member of Technology Club, Artificial Intelligence Club, and Columbia Entrepreneurs Organization."
       },
       {
         id: "edu-ucsb",
@@ -255,26 +256,11 @@
       {
         title: "AI Product Innovation Lab",
         org: "Project artifact",
-        amount: "Lumina worksheet and provided screenshots"
+        amount: "Lumina product notes and provided screenshots"
       }
     ],
 
-    publications: [
-      {
-        authors: "Lumina AI Product",
-        title: "AI Product Innovation Lab Worksheet",
-        journal: "Product artifact",
-        year: 2026,
-        detail: "Documents pain discovery, user evidence, MVP feature selection, cut-log reasoning, demo design, and role-capability mapping."
-      },
-      {
-        authors: "Marketing Analytics Project",
-        title: "Fragrance Review Perception Modeling",
-        journal: "Applied analytics project",
-        year: 2025,
-        detail: "LLM-assisted NLP, clustering, and regression modeling on 7,950 reviews."
-      }
-    ],
+    publications: [],
 
     peerEvaluations: [
       {
@@ -288,7 +274,7 @@
         text: "Shows the capture workflow, digital library, AI-classified themes, and influence-network views."
       },
       {
-        name: "AI Product worksheet",
+        name: "AI Product notes",
         role: "Product source",
         text: "Captures user problem, MVP choices, blocker log, demo status, and capability-role mapping."
       }
@@ -304,9 +290,9 @@
       demoCallout: "Kailin V7 presents each project as hiring evidence: user insight, GTM logic, analytics method, screenshots, and measurable outcomes.",
       educationTitle: "Education",
       awardsTitle: "Capability Themes",
-      publicationsTitle: "Source Artifacts",
+      publicationsTitle: "Source",
       courseworkTitle: "Relevant Coursework & Applied Projects",
-      profileMaterialsTitle: "ATS Signal Layer",
+      profileMaterialsTitle: "Role Fit",
       chatTitle: "Ask about Kailin",
       chatPlaceholder: "Ask about Kailin's product marketing projects...",
       chatGreeting: "Hi! I can answer questions about Kailin's AI product work, marketing analytics, GTM experience, education, and projects."
@@ -318,13 +304,13 @@
         navTitle: "Lumina AI Product",
         navMeta: "AI product innovation lab - insight capture, theme library, behavior patterns, and growth reflection",
         title: "Lumina AI Growth Insight Companion",
-        source: "AI Product Innovation Lab worksheet and provided screenshots",
+        source: "AI Product Innovation Lab notes and provided screenshots",
         tagline: "AI-driven growth journal that turns fragmented thoughts into personal insight archives, themes, patterns, and reflection prompts.",
         problemStatement: {
           narrative: "Kailin identified a specific user problem: ambitious students and young professionals often produce valuable self-reflections after networking, projects, videos, conversations, or emotional moments, but those insights stay scattered across notes, screenshots, saved posts, and memory. Lumina frames the problem as a product opportunity: help users capture short-lived thoughts, connect them over time, and make recurring emotional and behavioral patterns visible."
         },
         approach: {
-          description: "The product design uses a low-friction capture flow, an AI-classified digital library, theme grouping, influence mapping, and growth-reflection views. Kailin's worksheet documents user evidence, first-version problem framing, simplified product definition, MVP feature choices, cut features, blocker log, demo state, and role-capability mapping."
+          description: "The product design uses a low-friction capture flow, an AI-classified digital library, theme grouping, influence mapping, and growth-reflection views. Kailin's product notes document user evidence, first-version problem framing, simplified product definition, MVP feature choices, cut features, blocker log, demo state, and role-capability mapping."
         },
         result: [
           "Defined a focused AI product around capture, classification, behavior-pattern analysis, and growth reflection rather than a broad life-advice tool.",
@@ -343,7 +329,7 @@
           "Defined the target user as 20-30 year-old students and young professionals navigating information overload, career exploration, and self-reflection.",
           "Scoped the MVP to capture thoughts, analyze patterns, and generate reflection instead of overbuilding direct life advice.",
           "Designed the product evidence flow: screenshots show the capture interface, digital library, category structure, and influence-network view.",
-          "Documented cut features, blocker log, demo status, and capability-role mapping in the worksheet."
+          "Documented cut features, blocker log, demo status, and capability-role mapping in product notes."
         ],
         metrics: [
           { label: "Core modules", value: "5", category: "Product" },
@@ -353,18 +339,7 @@
         relatedTech: ["cursor", "figma", "llm-nlp"],
         relatedExp: ["exp-boundary"],
         accent: "#f97316",
-        artifactLinks: [
-          {
-            label: "Open workflow sketch",
-            href: "../User_data/Kailin/Kailin Template.jpeg",
-            note: "Template diagram"
-          },
-          {
-            label: "Open worksheet",
-            href: "../User_data/Kailin/7SpPKFRzQKpaPMSuiXVE_AI%E4%BA%A7%E5%93%81%E5%88%9B%E6%96%B0%E5%AE%9E%E9%AA%8C%E5%AE%A4_Worksheet_%E6%9C%80%E7%BB%88%E7%89%88.xlsx",
-            note: "Source workbook"
-          }
-        ],
+        artifactLinks: [],
         stages: [
           {
             label: "Discover",
@@ -374,7 +349,7 @@
             operationLines: ["Named the target user", "Separated memory loss from deeper pattern confusion", "Captured evidence from personal use and observed peers"],
             outputTitle: "Problem statement",
             outputLines: ["Fragmented thoughts", "Repeated emotional patterns", "Need for long-term self-understanding"],
-            pmNote: "The strongest product decision is that the pain is not only note-taking. The worksheet frames it as a pattern-recognition and reflection problem."
+            pmNote: "The strongest product decision is that the pain is not only note-taking. The product framing treats it as a pattern-recognition and reflection problem."
           },
           {
             label: "Scope",

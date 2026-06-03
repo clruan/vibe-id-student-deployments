@@ -137,15 +137,24 @@
   }
 
   function openProjectFromResult(projectId) {
-    var page = document.getElementById("page-2");
-    if (page) page.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.setTimeout(function () {
-      var item = document.querySelector('.project-accordion-item[data-project-id="' + projectId + '"]');
-      if (!item) return;
-      var header = item.querySelector(".project-accordion-header");
-      if (header && !item.classList.contains("is-expanded")) header.click();
-      item.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 220);
+    var item = document.querySelector('.project-accordion-item[data-project-id="' + projectId + '"]');
+    if (!item) {
+      var page = document.getElementById("page-2");
+      if (page) page.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    var header = item.querySelector(".project-accordion-header");
+    if (header && !item.classList.contains("is-expanded")) header.click();
+    settleScrollToProject(item);
+  }
+
+  function settleScrollToProject(item) {
+    if (!item) return;
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        item.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 
   function renderHeroIdentity(data) {
@@ -166,7 +175,7 @@
 
     identity.innerHTML = '<article class="linkedin-profile-card">' +
       '<div class="linkedin-cover" aria-hidden="true">' +
-        '<span>AI Resume</span>' +
+        '<span>Vibe ID</span>' +
       '</div>' +
       '<div class="linkedin-profile-body">' +
         '<div class="linkedin-avatar-row">' +
@@ -955,7 +964,7 @@
       visibleCardCount += 1;
     }
 
-    if (links.length) {
+    if (links.length && !data.hideProfileSourceLinks) {
       cards.push('<article class="profile-material-card">' +
         '<h3>Source Links</h3>' +
         '<div class="project-artifact-row profile-material-links">' +
@@ -975,9 +984,9 @@
       visibleCardCount += 1;
     }
 
-    if (atsKeywords.length) {
+    if (atsKeywords.length && !data.hideAtsKeywordLayer) {
       cards.push('<article class="profile-material-card profile-material-card-wide ats-module">' +
-        '<h3>ATS Signal Layer</h3>' +
+        '<h3>Keyword Coverage</h3>' +
         '<p>' + atsKeywords.join(" · ") + '</p>' +
       '</article>');
     }
@@ -990,24 +999,22 @@
   function renderAtsReadinessCard(atsProfile) {
     var keywords = Array.isArray(atsProfile.targetKeywords) ? atsProfile.targetKeywords : [];
     var parseSignals = Array.isArray(atsProfile.parseSignals) ? atsProfile.parseSignals : [];
-    var riskFlags = Array.isArray(atsProfile.riskFlags) ? atsProfile.riskFlags : [];
     var split = atsProfile.split || atsProfile.cohortRole || "";
     var role = atsProfile.targetRole || atsProfile.roleFamily || "";
-    var scoringUse = atsProfile.scoringUse || "";
+    var title = atsProfile.title || "ATS Readiness";
+    var hideNotes = Boolean(atsProfile.hideDiagnosticNotes);
 
     return '<article class="profile-material-card profile-material-card-wide ats-readiness-module">' +
       '<div class="ats-readiness-head">' +
-        '<h3>ATS Readiness</h3>' +
+        '<h3>' + stripTags(title) + '</h3>' +
         (split ? '<span>' + stripTags(split) + '</span>' : "") +
       '</div>' +
       '<div class="ats-readiness-grid">' +
         renderAtsReadinessBlock("Target", role || "Role-specific keyword scan") +
-        renderAtsReadinessBlock("Use", scoringUse || "ATS calibration input") +
       '</div>' +
       (keywords.length ? '<div class="ats-chip-row">' + keywords.slice(0, 16).map(renderAtsChip).join("") + '</div>' : "") +
-      (parseSignals.length || riskFlags.length ? '<div class="ats-note-grid">' +
+      (!hideNotes && parseSignals.length ? '<div class="ats-note-grid">' +
         (parseSignals.length ? renderAtsNoteList("Parse signals", parseSignals) : "") +
-        (riskFlags.length ? renderAtsNoteList("Watch items", riskFlags) : "") +
       '</div>' : "") +
     '</article>';
   }

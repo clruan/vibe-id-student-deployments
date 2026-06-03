@@ -20,6 +20,7 @@
       phone: "(805) 331-8021",
       email: "kailinliu06@gmail.com",
       linkedin: "https://www.linkedin.com/in/kailinliu1105/",
+      photo: "assets/media/kailin/Kailin_Liu_portrait.jpeg",
       summary: "Columbia MS Marketing Science candidate with source-backed experience in AI product marketing, creator acquisition, user research, analytics, and early-stage product validation. Her Vibe ID foregrounds GTM execution, measurement thinking, and concise AI product evidence."
     },
     documents: {
@@ -31,7 +32,7 @@
       { label: "Resume PDF", value: "Open resume", href: "assets/media/kailin/Kailin_Liu_Resume.pdf" }
     ],
     skillLayout: {
-      primary: { group: "analytical", title: "ATS-Aligned Marketing Skills" },
+      primary: { group: "analytical", title: "Marketing & Product Skills" },
       secondary: [
         { group: "stack", title: "Tools & Analytics Stack" },
         { group: "certifications", title: "Credentials" }
@@ -43,11 +44,14 @@
         certifications: 4
       }
     },
-    profileMaterialsMode: "ats-only",
+    profileMaterialsMode: "role-alignment",
+    hideProfileSourceLinks: true,
+    hideAtsKeywordLayer: true,
     atsProfile: {
-      split: "Standalone V7 - Kailin",
+      title: "Role Alignment",
+      split: "Kailin",
       targetRole: "APMM / Product Marketing Manager / Product Strategy & Operations",
-      scoringUse: "Use as a light ATS layer: standard contact fields, education, GPA, tools, role keywords, selected projects, and honest source-bound rewrites are visible in machine-readable HTML.",
+      hideDiagnosticNotes: true,
       targetKeywords: [
         "product marketing",
         "go-to-market strategy",
@@ -115,8 +119,7 @@
     ],
     licensesCertifications: [
       { id: "technology-management", label: "Technology Management Certificate" },
-      { id: "columbia-ms", label: "Columbia MS Marketing Science" },
-      { id: "gre-331", label: "GRE 331" }
+      { id: "columbia-ms", label: "Columbia MS Marketing Science" }
     ],
     results: [
       {
@@ -228,7 +231,7 @@
         institution: "Columbia Business School",
         location: "New York, NY",
         dates: "Expected Dec 2026",
-        note: "GRE 331; Technology Club, Artificial Intelligence Club, Columbia Entrepreneurs Organization",
+        note: "Technology Club, Artificial Intelligence Club, Columbia Entrepreneurs Organization",
         details: "Relevant coursework: Advanced Marketing Analytics, Statistical Modeling & Decision Making, Product Management, Database for Business, Growth Hacking, Marketing Intelligence, Managing Brands, Media Planning & Growth Marketing"
       },
       {
@@ -260,38 +263,17 @@
         ]
       }
     ],
-    awards: [
-      {
-        title: "UCSB GPA 3.75/4",
-        org: "University of California, Santa Barbara",
-        amount: "Academic signal"
-      },
-      {
-        title: "GRE 331",
-        org: "Columbia Business School application material",
-        amount: "Quantitative signal"
-      }
-    ],
-    publications: [
-      {
-        title: "Source Resume",
-        authors: "Kailin Liu",
-        journal: "Kailin Liu Resume PDF",
-        detail: "Provided artifact",
-        venue: "Kailin Liu Resume PDF",
-        year: "Provided artifact",
-        links: [{ label: "Open PDF", href: "assets/media/kailin/Kailin_Liu_Resume.pdf" }]
-      }
-    ],
+    awards: [],
+    publications: [],
     ui: {
       resultsTitle: "Featured AI Projects",
       projectsTitle: "Selected Product & AI Projects",
       experienceTitle: "Experience",
       educationTitle: "Education",
-      awardsTitle: "ATS Signals",
-      publicationsTitle: "Source Artifact",
+      awardsTitle: "Highlights",
+      publicationsTitle: "Source",
       courseworkTitle: "Relevant Coursework",
-      profileMaterialsTitle: "ATS Signal Layer"
+      profileMaterialsTitle: "Role Fit"
     },
     projects: [
       {

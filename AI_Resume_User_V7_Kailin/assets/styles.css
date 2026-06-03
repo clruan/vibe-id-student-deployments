@@ -1624,7 +1624,7 @@ body.mode-vip .skill-panels.is-ready.is-visible.has-focus {
   background: #ffffff;
 }
 
-.org-logo img ~ span {
+.org-logo.has-logo.is-loaded img ~ span {
   display: none;
 }
 

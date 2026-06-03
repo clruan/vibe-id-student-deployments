@@ -47,6 +47,8 @@
   };
 
   const orgLogoMap = [
+    { pattern: /columbia business school|columbia university|columbia/i, domain: "columbia.edu", initials: "CU" },
+    { pattern: /university of california, santa barbara|uc santa barbara|ucsb/i, domain: "ucsb.edu", initials: "UCSB" },
     { pattern: /university of minnesota|umn/i, domain: "umn.edu", initials: "UMN" },
     { pattern: /university of california, san diego|uc san diego|ucsd/i, domain: "ucsd.edu", initials: "UCSD" },
     { pattern: /university of liverpool/i, domain: "liverpool.ac.uk", initials: "UL" },
@@ -117,7 +119,7 @@
     var src = match && match.domain ? "https://www.google.com/s2/favicons?domain=" + match.domain + "&sz=96" : "";
     var label = escapeAttr(name || "Organization");
     var img = src
-      ? "<img src=\"" + src + "\" alt=\"" + label + " logo\" loading=\"lazy\" onerror=\"this.remove();this.parentElement.classList.add('is-placeholder');\">"
+      ? "<img src=\"" + src + "\" alt=\"" + label + " logo\" loading=\"lazy\" onload=\"this.parentElement.classList.add('is-loaded');\" onerror=\"this.remove();this.parentElement.classList.add('is-placeholder');\">"
       : "";
 
     return '<span class="org-logo' + (src ? " has-logo" : " is-placeholder") + '" aria-label="' + label + ' logo">' +

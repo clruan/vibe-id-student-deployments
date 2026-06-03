@@ -62,6 +62,7 @@
           item.classList.add("is-expanded");
           state.activeProjectId = projectId;
           renderProjectDetail(data, state, projectId, callbacks);
+          settleProjectScroll(item);
           if (callbacks.onProjectActivate) callbacks.onProjectActivate(projectId);
         } else {
           state.activeProjectId = null;
@@ -104,6 +105,15 @@
         renderProjectsAccordion(data, state, callbacks);
       });
     }
+  }
+
+  function settleProjectScroll(item) {
+    if (!item) return;
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        item.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 
   function renderProjectListToggle(total, limit, expanded) {
