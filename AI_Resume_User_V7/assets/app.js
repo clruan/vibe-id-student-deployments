@@ -97,7 +97,7 @@
     if (initialProjectHeader) {
       initialProjectHeader.click();
       setTimeout(function () {
-        var projectPage = document.getElementById("page-2");
+        var projectPage = document.getElementById("page-3");
         if (projectPage) projectPage.scrollIntoView({ block: "start" });
       }, 50);
     }

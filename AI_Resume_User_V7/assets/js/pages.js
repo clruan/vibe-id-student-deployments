@@ -139,7 +139,7 @@
   function openProjectFromResult(projectId) {
     var item = document.querySelector('.project-accordion-item[data-project-id="' + projectId + '"]');
     if (!item) {
-      var page = document.getElementById("page-2");
+      var page = document.getElementById("page-3");
       if (page) page.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
