@@ -586,8 +586,8 @@ async function generateDraft(sourcePack, run) {
     "- Uploaded screenshots/images must be used as visual evidence when relevant. Attach them to the closest matching project through screenshots[].",
     "- Projects should include title/navTitle/source/summary/owned/metrics/relatedTech/stages/screenshots when evidence supports them.",
     "- Projects must be written like Duke V7 demos, not generic portfolio cards: name the workflow problem, the operating knob/lens, the evidence path, the output, and the honest limitation.",
-    "- Project demo content must be flow-first and concise: 3 concrete stages by default, each stage renders as Input -> Logic -> Output.",
-    "- For each stage, provide short titles and at most 1-2 short lines per column. Avoid paragraphs and vague stage labels like Research/Build/Result unless the source only supports that level.",
+    "- Project demo content must be flow-first and very sparse: 3 concrete stages by default, each stage renders as Input -> Logic -> Output.",
+    "- For each stage, use short noun-phrase titles and at most one compact line per column. Prefer diagram labels over prose. Avoid paragraphs, explanatory sentences, and vague labels like Research/Build/Result unless the source only supports that level.",
     "- When source supports a product, analytics, ML, clinical, finance, or evidence-review workflow, include a lightweight interactive demo scaffold through flow steps, not long explanation text. Do not invent screenshots, live links, or numeric metrics.",
     "- For every experience, include readMoreKeywords for hidden bullets after the first bullet. Each entry must be one or two high-signal keywords; join two with ' + '. Do not include ellipses, slashes, commas, trailing punctuation, or more than two concepts.",
     "- Include an ATS keyword layer only: target keywords, matched keywords, missing keywords, source-backed suggestions, and risk flags. Do not assign numeric scores.",
@@ -1175,57 +1175,57 @@ function enrichProjectStages(project, kind) {
 
   const blueprints = {
     nd2: [
-      stage("Scan", "Study directory", ["ND2 files", "Study config", "Marker and treatment labels"], "Parse image and metadata", ["Read metadata", "Map channels", "Organize groups and replicates"], "Study index", ["File manifest", "Channel map", "Replicate-aware metadata"], "Reliable study structure comes before any threshold slider can be trusted."),
-      stage("Precompute", "Indexed microscopy data", ["RGB channels", "Ratio channels", "Replicate groupings"], "Generate threshold curves", ["Sweep candidate thresholds", "Cache preview statistics", "Prepare group summaries"], "Instant response cache", ["Threshold curves", "Preview overlays", "Boxplot-ready values"], "Precomputation turns slow image review into an interactive inspection loop."),
-      stage("Inspect", "Cached curves", ["Channel tabs", "Treatment groups", "Replicate hover data"], "Operate the review agent", ["Move threshold", "Compare group separation", "Check stability"], "Threshold decision", ["Selected threshold", "Visible uncertainty", "Reviewer rationale"], "The reviewer sees why a threshold works instead of accepting a static cutoff."),
+      stage("Scan", "Study files", ["ND2 + labels"], "Parse metadata", ["Channels + groups"], "Index", ["Manifest + map"], "Source structure before sliders."),
+      stage("Precompute", "Image stack", ["RGB + ratios"], "Sweep thresholds", ["Cache previews"], "Response cache", ["Curves + overlays"], "Fast inspection loop."),
+      stage("Inspect", "Cached curves", ["Groups + hover"], "Move threshold", ["Compare separation"], "Decision", ["Cutoff + caveat"], "Reviewer-visible threshold choice."),
       stage("Export", "Accepted settings", ["Configuration metadata", "Statistical tests", "Figures"], "Prepare transparent output", ["Export Excel/PNG views", "Record parameters", "Package reports"], "Reproducible package", ["Figures", "Statistics", "Config trace"], "The export is useful because the operating choices remain attached to the result.")
     ],
     neural: [
-      stage("Prepare", "Raw imaging signal", ["Histology or microscopy images", "Labels or review notes", "QC constraints"], "Normalize model input", ["Register signal", "Standardize intensity", "Separate review sets"], "Model-ready input", ["Aligned tensors", "Candidate labels", "Review metadata"], "The deep-learning workflow starts with data discipline."),
-      stage("Model", "Prepared tensors", ["Signal pattern", "Noise and artifacts", "Candidate classes"], "Train or compare models", ["Run CNN-style workflow", "Track confidence", "Review failure modes"], "Candidate output", ["Activation traces", "Class probabilities", "Mask or label"], "The model is treated as operating behavior, not a single model name."),
-      stage("Inspect", "Candidate output", ["Predicted mask", "Confidence score", "Layer activations"], "Review before export", ["Inspect activation field", "Adjust confidence gate", "Compare against domain expectations"], "Defensible decision", ["Accepted result", "Flagged failures", "Confidence-gated export"], "This is why the workbench belongs here: evidence can be inspected."),
+      stage("Prepare", "Raw signal", ["Images + labels"], "Normalize", ["Align + split"], "Model input", ["Tensors + labels"], "Data discipline first."),
+      stage("Model", "Tensors", ["Signal + classes"], "Train / compare", ["CNN + confidence"], "Candidate", ["Probabilities + mask"], "Model behavior, not just model name."),
+      stage("Inspect", "Candidate", ["Mask + confidence"], "Review gate", ["Activations + threshold"], "Decision", ["Accept + flag"], "Inspectable evidence."),
       stage("Report", "Reviewed output", ["Validated mask", "Classification result", "QC annotations"], "Translate to study evidence", ["Summarize groups", "Prepare figures", "Document settings"], "Research-ready analysis", ["Figures", "Statistics", "Reusable settings"], "The reporting layer connects model output to scientific workflow.")
     ],
     survival: [
-      stage("Cohort", "Clinical event data", ["Exposure definition", "Outcomes", "Covariates"], "Define analysis cohort", ["Apply inclusion rules", "Align index dates", "Prepare event times"], "Analysis table", ["Groups", "Event times", "Confounder matrix"], "The cohort stage determines whether later estimates are interpretable."),
-      stage("Balance", "Observed groups", ["Baseline risk", "Treatment assignment", "Missingness"], "Check confounding", ["Estimate adjustment", "Review balance", "Prepare estimators"], "Comparable groups", ["Balance diagnostics", "Weighted data", "Estimator-ready table"], "Balance diagnostics are the trust gate."),
-      stage("Estimate", "Comparable groups", ["Event times", "Censoring", "Competing events"], "Run time-to-event analysis", ["Kaplan-Meier", "Cox-style comparison", "Sensitivity checks"], "Risk estimates", ["Curves", "Effect estimates", "Subgroup contrasts"], "Method choice stays visible."),
+      stage("Cohort", "Event data", ["Exposure + outcome"], "Apply rules", ["Index + event time"], "Analysis table", ["Groups + covariates"], "Cohort definition sets trust."),
+      stage("Balance", "Observed groups", ["Risk + missingness"], "Check confounding", ["Weights + diagnostics"], "Comparable set", ["Balance table"], "Balance is the gate."),
+      stage("Estimate", "Comparable set", ["Events + censoring"], "Run survival model", ["KM / Cox lens"], "Risk view", ["Curves + effect"], "Method stays visible."),
       stage("Explain", "Risk estimates", ["Curve separation", "Adjusted results", "Limitations"], "Translate for collaborators", ["Summarize uncertainty", "Flag assumptions", "Prepare visuals"], "Clinical story", ["Risk summary", "Decision-facing visual", "Reusable notes"], "The output is designed for scientific discussion.")
     ],
     tradeoff: [
-      stage("Parse", "Source packet", baseInput, "Convert evidence into comparable fields", ["Extract signals", "Clean identifiers", "Remove unsupported claims"], "Comparable records", ["Candidate fields", "Project signals", "Reviewer notes"], "The first gate is faithful parsing."),
-      stage("Embed", "Comparable records", ["Text spans", "Keyword requirements", "Project evidence"], "Create matching signals", ["Map skills", "Score overlaps", "Prepare retrieval runs"], "Rankable evidence", ["Feature vectors", "Keyword matrix", "Similarity scores"], "The demo should expose why a match ranks highly."),
-      stage("Tune", "Retrieval runs", ["Precision", "Recall", "Top matches"], "Compare operating points", ["Inspect frontier", "Select balanced run", "Flag weak evidence"], "Chosen run", ["Winner setting", "Score delta", "Reviewer caveat"], "The operating point is visible rather than hidden."),
+      stage("Parse", "Source packet", baseInput.slice(0, 1), "Extract fields", ["Signals + claims"], "Records", ["Fields + notes"], "Faithful parse first."),
+      stage("Embed", "Records", ["Text + JD terms"], "Map signals", ["Skills + overlap"], "Rankable evidence", ["Matrix + scores"], "Why a match ranks."),
+      stage("Tune", "Runs", ["Precision / recall"], "Compare frontier", ["Pick balanced run"], "Chosen run", ["Setting + caveat"], "Operating point is visible."),
       stage("Review", "Chosen run", ["Ranked evidence", "Unsupported gaps", "JD needs"], "Prepare output", ["Summarize fit", "List gaps", "Export review notes"], "Reviewer package", ["Ranked result", "ATS notes", "Next edit"], "Good matching includes limitations.")
     ],
     evidence: [
-      stage("Question", "Review objective", baseInput, "Frame answerable hypotheses", ["Break down the question", "Name required evidence", "Set source boundary"], "Issue tree", ["Hypotheses", "Evidence needs", "Known limits"], "The demo starts with a reviewable question."),
-      stage("Collect", "Source materials", ["Documents", "Links", "Notes"], "Gather support and counterevidence", ["Extract claims", "Attach sources", "Track limitations"], "Evidence table", ["Support rows", "Counter rows", "Source quality"], "Good research keeps counterevidence visible."),
-      stage("Score", "Evidence table", ["Claims", "Citations", "Confidence"], "Check traceability", ["Map claim to source", "Rate confidence", "Reject unsupported text"], "Traceable answer", ["Supported claims", "Caveats", "Confidence score"], "The answer is credible because claims can be traced."),
+      stage("Question", "Objective", baseInput.slice(0, 1), "Frame claims", ["Question + boundary"], "Issue tree", ["Hypotheses + gaps"], "Reviewable question."),
+      stage("Collect", "Sources", ["Docs + links"], "Trace support", ["Claims + caveats"], "Evidence table", ["Support + counter"], "Counterevidence stays visible."),
+      stage("Score", "Evidence table", ["Claims + citations"], "Check trace", ["Support / reject"], "Answer", ["Claim + caveat"], "Traceable answer."),
       stage("Output", "Traceable answer", ["Findings", "Caveats", "Next checks"], "Package reviewer narrative", ["Write concise finding", "Show limitation", "Recommend next step"], "Decision brief", ["Conclusion", "So-what", "Open question"], "The result stays caveat-aware.")
     ],
     timeline: [
-      stage("Signal", "User or market input", baseInput, "Identify the problem pattern", ["Read user evidence", "Separate segments", "Name the blocker"], "Opportunity frame", ["Target user", "Pain point", "Success signal"], "The project becomes stronger when the user problem is inspectable."),
-      stage("Strategy", "Opportunity frame", ["Audience", "Message", "Channel or product idea"], "Define the operating plan", ["Prioritize MVP", "Map GTM logic", "Choose measurement"], "Launch plan", ["Positioning", "Workflow", "KPI frame"], "Strategy is tied to a measurable behavior."),
-      stage("Execute", "Launch plan", ["Collateral", "Prototype", "Campaign or workflow"], "Build and test the asset", ["Create demo", "Run analysis", "Collect feedback"], "Working artifact", ["Screenshots", "Findings", "Iteration notes"], "Execution evidence matters more than broad claims."),
+      stage("Signal", "User input", baseInput.slice(0, 1), "Find pattern", ["Segment + blocker"], "Opportunity", ["User + pain"], "Inspectable user problem."),
+      stage("Strategy", "Opportunity", ["Audience + message"], "Set plan", ["MVP + metric"], "Launch plan", ["Positioning + KPI"], "Behavior-linked strategy."),
+      stage("Execute", "Plan", ["Prototype + channel"], "Test asset", ["Demo + feedback"], "Artifact", ["Screens + findings"], "Execution over claims."),
       stage("Learn", "Working artifact", ["Metrics", "Feedback", "Blockers"], "Interpret outcome honestly", ["Compare signal", "Document limitation", "Name next action"], "Decision note", ["What improved", "What is uncertain", "Next step"], "The output is useful because it includes what not to overclaim.")
     ],
     nlp: [
-      stage("Load", "Text resources", ["Documents", "Dictionaries", "Custom phrases"], "Validate extraction setup", ["Load resources", "Check conflicts", "Expose coverage"], "Ready engine", ["Entry counts", "Validation report", "Coverage signal"], "Dictionary quality is a first-class dependency."),
-      stage("Extract", "Source text", ["Sentences", "Domain phrases", "Uncertainty"], "Run semantic extraction", ["Process text", "Attach roles", "Mark certainty"], "Semantic objects", ["Concept text", "Codes", "Role and certainty"], "Extraction must be inspectable."),
-      stage("Filter", "Semantic objects", ["Roles", "Certainty", "Positions"], "Review and refine output", ["Filter by role", "Find negation", "Compare overlaps"], "Reviewable concepts", ["Accepted objects", "Flagged uncertainty", "Comparison stats"], "Filtering turns raw NLP into a useful workflow."),
+      stage("Load", "Text resources", ["Docs + dictionary"], "Validate setup", ["Coverage + conflicts"], "Engine", ["Entries + report"], "Dictionary quality matters."),
+      stage("Extract", "Source text", ["Sentences + phrases"], "Run extraction", ["Roles + certainty"], "Objects", ["Concepts + codes"], "Inspectable extraction."),
+      stage("Filter", "Objects", ["Role + certainty"], "Review output", ["Negation + overlap"], "Concepts", ["Accepted + flagged"], "Raw NLP becomes workflow."),
       stage("Export", "Reviewed concepts", ["Rows", "Codes", "Metadata"], "Prepare downstream output", ["Export table", "Create simple view", "Document settings"], "Reusable NLP output", ["CSV-like rows", "Code list", "Audit notes"], "Output formats support reproducible review.")
     ],
     cluster: [
-      stage("Prepare", "Feature table", baseInput, "Normalize comparison fields", ["Clean features", "Scale values", "Track missingness"], "Model matrix", ["Feature table", "QC flags", "Group labels"], "Clustering depends on feature discipline."),
-      stage("Map", "Model matrix", ["Features", "Distances", "Candidate clusters"], "Build topology", ["Train map", "Inspect neighbors", "Compare lenses"], "Cluster map", ["Topology", "Candidate groups", "Quality metrics"], "The map shows why groups are near each other."),
-      stage("Validate", "Cluster map", ["Cluster profiles", "Validation metrics", "Use case"], "Check interpretability", ["Inspect signals", "Compare alternatives", "Flag weak splits"], "Selected grouping", ["Profile", "Validation", "Caveat"], "Validation keeps the grouping from becoming decorative."),
+      stage("Prepare", "Feature table", baseInput.slice(0, 1), "Normalize", ["Features + missingness"], "Matrix", ["QC + groups"], "Feature discipline first."),
+      stage("Map", "Matrix", ["Features + distance"], "Build topology", ["Neighbors + lenses"], "Cluster map", ["Groups + metrics"], "Why groups sit together."),
+      stage("Validate", "Cluster map", ["Profiles + metrics"], "Check split", ["Signals + caveat"], "Grouping", ["Profile + use"], "Not decorative."),
       stage("Explain", "Selected grouping", ["Signals", "Audience", "Use case"], "Translate to decision view", ["Name segments", "Summarize risks", "Recommend next step"], "Segment story", ["Cluster profile", "Business or research use", "Next action"], "The result must be explainable.")
     ],
     workflow: [
-      stage("Frame", "Source evidence", baseInput, "Define project purpose", ["Map evidence to JD", "Name workflow boundary", "Keep source-backed claims only"], "Problem frame", ["Target problem", "Relevant signals", "Known limits"], "This prevents the project from becoming a vague portfolio item."),
-      stage("Operate", "Problem frame", ["Inputs", "Tools", "Constraints"], "Run the main workflow", ["Apply method", "Compare choices", "Track reviewer-visible logic"], "Working artifact", ["Output", "Quality check", "Decision note"], "The workflow shows how the work happens."),
-      stage("Review", "Working artifact", ["Result", "Metric or signal", "Limitation"], "Inspect quality", ["Check evidence", "Flag gaps", "Summarize tradeoff"], "Reviewable result", ["Supported result", "Caveat", "Next step"], "The limitation stays visible."),
+      stage("Frame", "Source evidence", baseInput.slice(0, 1), "Set boundary", ["JD map + limits"], "Problem frame", ["Signals + gaps"], "Avoid vague portfolio claims."),
+      stage("Operate", "Problem frame", ["Input + tool"], "Run workflow", ["Method + choice"], "Artifact", ["Output + QC"], "How the work happens."),
+      stage("Review", "Artifact", ["Result + limit"], "Inspect quality", ["Evidence + gap"], "Result", ["Support + next"], "Limitation stays visible."),
       stage("Package", "Reviewable result", ["Summary", "Evidence", "Next action"], "Prepare hiring evidence", ["Write concise summary", "Attach materials", "Align JD terms"], "Vibe ID project", ["Demo frame", "ATS terms", "Source boundary"], "The output is structured for review.")
     ]
   };

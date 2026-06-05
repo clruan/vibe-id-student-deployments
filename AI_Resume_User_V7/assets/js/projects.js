@@ -420,13 +420,13 @@
   function renderFlowNode(kind, label, title, lines) {
     return '<article class="aaron-flow-node aaron-flow-node-' + kind + '">' +
       '<span class="card-label">' + label + '</span>' +
-      '<h4>' + clipText(title, 42) + '</h4>' +
-      '<ul class="compact-list">' + clipLines(lines, 2, 48).map(function (line) { return '<li>' + line + '</li>'; }).join("") + '</ul>' +
+      '<h4>' + clipText(title, 30) + '</h4>' +
+      '<ul class="compact-list">' + clipLines(lines, 1, 34).map(function (line) { return '<li>' + line + '</li>'; }).join("") + '</ul>' +
     '</article>';
   }
 
   function renderPmNote(note) {
-    var text = clipText(note, 110);
+    var text = clipText(note, 58);
     if (!text) return "";
     return '<div class="pm-note pm-note-compact"><p>' + text + '</p></div>';
   }

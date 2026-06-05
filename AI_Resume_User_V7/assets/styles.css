@@ -2882,25 +2882,25 @@ body.mode-vip .skill-panels .tech-icon {
 .aaron-flow-map {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr) auto minmax(0, 1fr);
-  gap: 0.65rem;
+  gap: 0.55rem;
   align-items: stretch;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 .aaron-flow-node {
   position: relative;
-  padding: 0.85rem 0.9rem;
-  border-radius: 14px;
+  padding: 0.68rem 0.75rem;
+  border-radius: 12px;
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  min-height: 9.5rem;
+  min-height: 6.4rem;
 }
 
 .aaron-flow-node h4 {
-  margin: 0.35rem 0 0.55rem;
-  font-size: 0.96rem;
-  line-height: 1.25;
+  margin: 0.28rem 0 0.42rem;
+  font-size: 0.88rem;
+  line-height: 1.16;
 }
 
 .aaron-flow-node-logic {
@@ -2914,7 +2914,24 @@ body.mode-vip .skill-panels .tech-icon {
   color: var(--project-accent, var(--accent));
   font-family: var(--mono);
   font-weight: 900;
-  font-size: 1.4rem;
+  font-size: 1.12rem;
+}
+
+.aaron-flow-node .compact-list {
+  gap: 0.24rem;
+  font-size: 0.74rem;
+  line-height: 1.28;
+}
+
+.pm-note-compact {
+  margin-top: 0.7rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.pm-note-compact p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .pm-note {
