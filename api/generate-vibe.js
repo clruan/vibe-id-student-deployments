@@ -47,13 +47,6 @@ module.exports = async function handler(req, res) {
     for (const file of files) {
       parsedFiles.push(await parseUploadedFile(file));
     }
-    const parsedResume = parsedFiles.find((file) => file.kind === "resume");
-    if (!isUsableResumeFile(parsedResume)) {
-      const detail = parsedResume && parsedResume.parseError ? " Parser: " + parsedResume.parseError : "";
-      return res.status(422).json({
-        error: "Resume text could not be extracted. Please upload a DOCX/TXT resume or re-export the PDF as text-selectable before generating." + detail
-      });
-    }
 
     const sourcePack = buildSourcePack(student, job, parsedFiles);
     const variants = [];
@@ -155,7 +148,6 @@ async function parseUploadedFile(file) {
     size,
     type: cleanText(file.type || ""),
     parseMode: cleanText(file.parseMode || "inventory"),
-    parseError: "",
     text: cleanSourceText(file.text || "").slice(0, MAX_FILE_TEXT_CHARS),
     dataUrl: ""
   };
@@ -189,14 +181,13 @@ async function parseUploadedFile(file) {
     }
   } catch (error) {
     base.parseMode = base.parseMode + "-failed";
-    base.parseError = cleanText(error.message || "File parsing failed.");
+    base.text = [base.text, "Parse warning: " + error.message].filter(Boolean).join("\n").slice(0, MAX_FILE_TEXT_CHARS);
   }
 
   return base;
 }
 
 async function parsePdf(buffer) {
-  ensurePdfDomGlobals();
   const mod = require("pdf-parse");
   if (typeof mod === "function") {
     const result = await mod(buffer);
@@ -216,57 +207,6 @@ async function parsePdf(buffer) {
     }
   }
   return "";
-}
-
-function ensurePdfDomGlobals() {
-  if (typeof globalThis.DOMMatrix !== "undefined") return;
-  try {
-    const canvas = require("@napi-rs/canvas");
-    if (canvas.DOMMatrix) {
-      globalThis.DOMMatrix = canvas.DOMMatrix;
-      return;
-    }
-  } catch (_) {
-    // Fall through to a minimal matrix for pdfjs text extraction paths.
-  }
-
-  class SimpleDOMMatrix {
-    constructor(init) {
-      const values = Array.isArray(init) ? init : [];
-      this.a = Number(values[0] ?? 1);
-      this.b = Number(values[1] ?? 0);
-      this.c = Number(values[2] ?? 0);
-      this.d = Number(values[3] ?? 1);
-      this.e = Number(values[4] ?? 0);
-      this.f = Number(values[5] ?? 0);
-    }
-    scaleSelf(x, y) {
-      const sx = Number(x ?? 1);
-      const sy = Number(y ?? sx);
-      this.a *= sx;
-      this.b *= sx;
-      this.c *= sy;
-      this.d *= sy;
-      return this;
-    }
-    translateSelf(x, y) {
-      this.e += Number(x || 0);
-      this.f += Number(y || 0);
-      return this;
-    }
-    multiplySelf(other) {
-      const m = other || {};
-      const a = this.a * (m.a ?? 1) + this.c * (m.b ?? 0);
-      const b = this.b * (m.a ?? 1) + this.d * (m.b ?? 0);
-      const c = this.a * (m.c ?? 0) + this.c * (m.d ?? 1);
-      const d = this.b * (m.c ?? 0) + this.d * (m.d ?? 1);
-      const e = this.a * (m.e ?? 0) + this.c * (m.f ?? 0) + this.e;
-      const f = this.b * (m.e ?? 0) + this.d * (m.f ?? 0) + this.f;
-      Object.assign(this, { a, b, c, d, e, f });
-      return this;
-    }
-  }
-  globalThis.DOMMatrix = SimpleDOMMatrix;
 }
 
 async function parseDocx(buffer) {
@@ -383,7 +323,6 @@ function buildSourcePack(student, job, files) {
     kind: file.kind,
     extension: file.extension,
     parseMode: file.parseMode,
-    parseError: file.parseError || "",
     size: file.size,
     textChars: file.text.length,
     hasImageData: Boolean(file.dataUrl)
@@ -434,16 +373,6 @@ function buildSourcePack(student, job, files) {
     sourceText,
     targetKeywords: extractKeywordsFromText(job.text)
   };
-}
-
-function isUsableResumeFile(file) {
-  if (!file || file.kind !== "resume") return false;
-  const text = cleanSourceText(file.text || "");
-  if (/failed/i.test(file.parseMode || "") && text.length < 500) return false;
-  if (!text || text.length < 120) return false;
-  if (/^parse warning\b/i.test(text)) return false;
-  const alphaCount = (text.match(/[A-Za-z]/g) || []).length;
-  return alphaCount >= 40;
 }
 
 function loadKnownV7Reference(student, files) {
