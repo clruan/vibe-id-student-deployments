@@ -188,7 +188,7 @@ function KnitScene(props) {
 
 function RemotionHost() {
   const [state, setState] = useState({ stage: 0, fileCount: 0, variantCount: 0, materialNames: [], suggestions: [] });
-  const [wide, setWide] = useState(() => window.innerWidth >= 760);
+  const [wide, setWide] = useState(false);
 
   useEffect(() => {
     const onStage = (event) => {
@@ -199,9 +199,16 @@ function RemotionHost() {
   }, []);
 
   useEffect(() => {
-    const onResize = () => setWide(window.innerWidth >= 760);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const node = document.getElementById("remotion-root");
+    const update = () => setWide((node && node.clientWidth ? node.clientWidth : window.innerWidth) >= 760);
+    update();
+    if (node && "ResizeObserver" in window) {
+      const observer = new ResizeObserver(update);
+      observer.observe(node);
+      return () => observer.disconnect();
+    }
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
   return React.createElement(Player, {
