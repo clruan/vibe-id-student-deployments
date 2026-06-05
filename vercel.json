@@ -16,6 +16,21 @@
       "source": "/aaron-v7",
       "destination": "/AI_Resume_User_V7_Aaron/",
       "permanent": false
+    },
+    {
+      "source": "/generator",
+      "destination": "/Vibe_ID_Generator/",
+      "permanent": false
+    },
+    {
+      "source": "/vibe-id-generator",
+      "destination": "/Vibe_ID_Generator/",
+      "permanent": false
+    },
+    {
+      "source": "/vibe-id-generation",
+      "destination": "/Vibe_ID_Generator/",
+      "permanent": false
     }
   ],
   "headers": [

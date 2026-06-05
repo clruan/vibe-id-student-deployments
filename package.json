@@ -1,0 +1,15 @@
+{
+  "name": "ai-resume-vibe-id-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vercel-hosted Vibe ID generation tools for AI Resume V7.",
+  "scripts": {
+    "check:v7": "node --check AI_Resume_User_V7/assets/js/pages.js && node --check AI_Resume_User_V7_Aaron/assets/js/pages.js && node --check AI_Resume_User_V7_Kailin/assets/js/pages.js",
+    "serve": "node Vibe_ID_Generator/scripts/serve.js"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2",
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

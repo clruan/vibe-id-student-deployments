@@ -13,8 +13,13 @@
 !/AI_Resume_User_V7_Kailin/**
 !/api/
 !/api/**
+!/Vibe_ID_Generator/
+!/Vibe_ID_Generator/**
+!/package.json
+!/package-lock.json
 !/README.md
 !/.gitignore
+!/.vercelignore
 !/vercel.json
 
 .DS_Store
@@ -23,5 +28,6 @@ Thumbs.db
 .env
 .env.*
 node_modules/
+Vibe_ID_Generator/generated_examples/
 .vscode/
 ~$*

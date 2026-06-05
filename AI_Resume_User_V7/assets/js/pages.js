@@ -470,7 +470,7 @@
   function getHiddenBulletModels(data, item) {
     var bullets = Array.isArray(item.bullets) ? item.bullets.slice(1) : [];
     return bullets.map(function (bullet, index) {
-      var model = extractBulletKeyword(data, bullet, index);
+      var model = extractBulletKeyword(data, bullet, index, item);
       return {
         text: stripTags(bullet),
         keyword: model.keyword,
@@ -486,65 +486,307 @@
     });
   }
 
-  function extractBulletKeyword(data, value, fallbackIndex) {
+  function extractBulletKeyword(data, value, fallbackIndex, item) {
     var html = String(value || "");
     var plain = stripTags(html);
-    var matches = ns.skills && ns.skills.getJobKeywordMatches
-      ? ns.skills.getJobKeywordMatches(data, html)
-      : [];
-    var adjacentMatches = findAdjacentKeywordMatch(plain, matches);
-    if (adjacentMatches) return adjacentMatches;
+    var configured = getConfiguredReadMoreKeyword(item, fallbackIndex);
+    var candidates = [];
 
-    for (var i = 0; i < matches.length; i += 1) {
-      var match = findTextMatch(plain, matches[i]);
-      if (match) {
+    if (configured) {
+      var formatted = formatReadMoreKeywordLabel(configured);
+      if (formatted) {
         return {
-          keyword: polishKeywordLabel(matches[i]),
-          matchText: plain.slice(match.start, match.end)
+          keyword: formatted,
+          matchText: findBestMatchText(plain, formatted) || findBestMatchText(plain, configured)
         };
       }
     }
 
-    var strongMatch = html.match(/<strong[^>]*>(.*?)<\/strong>/i);
-    var preferred = strongMatch ? stripTags(strongMatch[1]) : "";
-    var text = stripTags(preferred || html);
-    var stop = {
-      and: true, the: true, for: true, with: true, from: true, into: true,
-      using: true, across: true, through: true, that: true, this: true,
-      developed: true, built: true, created: true, conducted: true, performed: true,
-      implemented: true, designed: true, analyzed: true, supported: true
-    };
-
-    var words = text.split(/[^A-Za-z0-9+.-]+/).filter(function (word) {
-      return word && word.length > 2 && !stop[word.toLowerCase()];
+    var matches = ns.skills && ns.skills.getJobKeywordMatches
+      ? ns.skills.getJobKeywordMatches(data, html)
+      : [];
+    matches.forEach(function (label, index) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 1120 - index * 18, "jd");
     });
 
-    if (!words.length) {
+    getSkillKeywordLabels(data, item).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 860, "skill");
+    });
+
+    getStrongPhrases(html).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 760, "strong");
+    });
+
+    getMetricPhrases(plain).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 690, "metric");
+    });
+
+    getSignalPhrases(plain).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 540, "signal");
+    });
+
+    var selected = selectReadMoreKeywords(candidates);
+    if (selected.length) {
       return {
-        keyword: "Signal" + (fallbackIndex + 1),
-        matchText: ""
+        keyword: selected.map(function (candidate) { return candidate.label; }).join(" + "),
+        matchText: selected[0].matchText || selected[0].raw
       };
     }
-    words.sort(function (a, b) {
-      return b.length - a.length;
-    });
+
     return {
-      keyword: polishKeywordLabel(words[0]),
-      matchText: words[0]
+      keyword: "Signal" + (fallbackIndex + 1),
+      matchText: ""
     };
   }
 
+  function getConfiguredReadMoreKeyword(item, fallbackIndex) {
+    var values = item && (item.readMoreKeywords || item.readMoreKeyword);
+    if (!values) return "";
+    if (!Array.isArray(values)) return values;
+    var direct = values[fallbackIndex];
+    if (typeof direct === "string") return direct;
+    if (direct && typeof direct === "object") {
+      return direct.keyword || direct.label || direct.text || "";
+    }
+    return "";
+  }
+
+  function formatReadMoreKeywordLabel(value) {
+    var labels = [];
+    splitReadMoreKeywordParts(value).forEach(function (part) {
+      var cleaned = cleanKeywordPhrase(part);
+      if (!cleaned || isWeakKeyword(cleaned)) return;
+      var label = polishKeywordLabel(cleaned);
+      if (!label) return;
+      var normalized = normalizeKeywordComparable(label);
+      if (!normalized || labels.some(function (existing) { return normalizeKeywordComparable(existing) === normalized || areKeywordLabelsRedundant(existing, label); })) return;
+      labels.push(label);
+    });
+    return labels.slice(0, 2).join(" + ");
+  }
+
+  function splitReadMoreKeywordParts(value) {
+    return String(value || "")
+      .replace(/[.…]+/g, " ")
+      .replace(/\s+\+\s+/g, " | ")
+      .replace(/\s+\/\s+/g, " | ")
+      .replace(/\s*,\s*/g, " | ")
+      .replace(/\s*;\s*/g, " | ")
+      .replace(/\s+\band\b\s+/gi, " | ")
+      .split("|")
+      .map(function (part) { return part.replace(/\s+/g, " ").trim(); })
+      .filter(Boolean);
+  }
+
+  function addKeywordCandidate(candidates, value, matchText, score, source) {
+    var raw = stripTags(value || "").replace(/\s+/g, " ").trim();
+    if (!raw) return;
+
+    var cleaned = cleanKeywordPhrase(raw);
+    if (!cleaned || isWeakKeyword(cleaned)) return;
+
+    var normalized = normalizeKeywordComparable(cleaned);
+    if (!normalized || normalized.length < 3) return;
+
+    var existing = candidates.filter(function (candidate) {
+      return candidate.normalized === normalized;
+    })[0];
+    var candidate = {
+      raw: cleaned,
+      label: polishKeywordLabel(cleaned),
+      matchText: matchText || cleaned,
+      normalized: normalized,
+      score: score + scoreKeywordPhrase(cleaned),
+      source: source
+    };
+
+    if (!existing) {
+      candidates.push(candidate);
+    } else if (candidate.score > existing.score) {
+      existing.raw = candidate.raw;
+      existing.label = candidate.label;
+      existing.matchText = candidate.matchText;
+      existing.score = candidate.score;
+      existing.source = candidate.source;
+    }
+  }
+
+  function selectReadMoreKeywords(candidates) {
+    var ranked = candidates.filter(function (candidate) {
+      return candidate && candidate.label;
+    }).sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.raw.length - a.raw.length;
+    });
+
+    if (!ranked.length) return [];
+    var selected = [ranked[0]];
+
+    for (var i = 1; i < ranked.length; i += 1) {
+      if (selected.length >= 2 || selectedConceptCount(selected) >= 2) break;
+      if (areKeywordsRedundant(selected[0], ranked[i])) continue;
+      if (ranked[i].score < Math.max(520, selected[0].score * 0.58)) continue;
+      selected.push(ranked[i]);
+    }
+
+    return selected;
+  }
+
+  function selectedConceptCount(selected) {
+    return splitReadMoreKeywordParts(selected.map(function (candidate) {
+      return candidate.label || candidate.raw || "";
+    }).join(" + ")).length;
+  }
+
+  function getSkillKeywordLabels(data, item) {
+    var labels = [];
+    var related = {};
+
+    (item && item.relatedTech || []).forEach(function (id) { related[id] = true; });
+    (data.stack || []).forEach(function (skill) {
+      if (related[skill.id] || related[skill.label]) labels.push(skill.label || skill.id);
+    });
+    (data.quantToolkit || []).forEach(function (tool) {
+      labels.push(tool.label);
+    });
+
+    return labels.filter(Boolean);
+  }
+
+  function getStrongPhrases(html) {
+    var out = [];
+    var pattern = /<strong[^>]*>(.*?)<\/strong>/gi;
+    var match;
+    while ((match = pattern.exec(String(html || "")))) {
+      var text = stripTags(match[1]);
+      if (text) out.push(text);
+      var compact = compactStrongPhrase(text);
+      if (compact && compact !== text) out.push(compact);
+    }
+    return out;
+  }
+
+  function compactStrongPhrase(value) {
+    var words = stripTags(value).split(/\s+/).filter(Boolean);
+    if (words.length <= 3) return words.join(" ");
+    var filtered = words.filter(function (word) {
+      return !isWeakKeyword(word);
+    });
+    if (filtered.length >= 2) return filtered.slice(-3).join(" ");
+    return words.slice(-3).join(" ");
+  }
+
+  function getMetricPhrases(text) {
+    var out = [];
+    var source = String(text || "");
+    var pattern = /(?:under\s+)?[$]?\d[\d,./-]*(?:\.\d+)?\+?%?(?:\/\d+(?:\.\d+)?)?(?:\s*(?:years?|months?|mo|samples?|views?|registrations?|accuracy|CPM|CTR|GPA|channels?|events?|features?|patients?|documents?|hours?))?/gi;
+    var match;
+    while ((match = pattern.exec(source))) {
+      var raw = match[0].trim();
+      if (!raw || /^\d$/.test(raw)) continue;
+      var after = source.slice(match.index + match[0].length).match(/^\s+(accuracy|samples?|views?|registrations?|channels?|events?|features?|patients?|documents?|labor|CPM|CTR|GPA)\b/i);
+      out.push(after ? raw + " " + after[1] : raw);
+    }
+    return out;
+  }
+
+  function getSignalPhrases(text) {
+    var out = [];
+    var source = String(text || "");
+    var pattern = /\b(?:[A-Z][A-Za-z0-9+.#-]*|[A-Z]{2,}|[A-Za-z]+(?:[-/][A-Za-z0-9+.#]+)+)(?:\s+(?:[A-Z][A-Za-z0-9+.#-]*|[A-Z]{2,}|[a-z][A-Za-z0-9+.#-]{2,})){0,2}\b/g;
+    var match;
+    while ((match = pattern.exec(source))) {
+      var phrase = match[0].trim();
+      if (phrase) out.push(phrase);
+    }
+    return out;
+  }
+
+  function cleanKeywordPhrase(value) {
+    var text = String(value || "")
+      .replace(/[.…]+/g, " ")
+      .replace(/[()[\]{}"“”‘’]/g, " ")
+      .replace(/\s*[;:,.]\s*$/g, "")
+      .replace(/\b(?:such as|including|using|through|across)\b\s*/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    var words = text.split(/\s+/).filter(Boolean);
+
+    while (words.length && isWeakKeyword(words[0])) words.shift();
+    while (words.length && isWeakKeyword(words[words.length - 1])) words.pop();
+    if (!words.length) return "";
+
+    if (words.length > 4) words = words.slice(-4);
+    return words.join(" ");
+  }
+
+  function scoreKeywordPhrase(value) {
+    var text = String(value || "");
+    var score = 0;
+    if (/\d/.test(text)) score += 120;
+    if (/[A-Z]{2,}/.test(text)) score += 90;
+    if (/\b(AI|LLM|SQL|Python|R|SAS|Excel|GTM|KPI|DCF|M&A|NLP|CNN|U-Net|FastAPI|React|Tableau|Power BI)\b/i.test(text)) score += 110;
+    if (/\b(model|analytics|measurement|strategy|research|pipeline|valuation|segmentation|survival|causal|stakeholder|experiment|attribution|forecast|dashboard|collaboration|recommendation|classification)\b/i.test(text)) score += 70;
+    return score;
+  }
+
+  function isWeakKeyword(value) {
+    var text = String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+    var stop = {
+      a: true, an: true, and: true, the: true, for: true, with: true, from: true,
+      into: true, using: true, across: true, through: true, that: true, this: true,
+      such: true, including: true, developed: true, built: true, created: true,
+      conducted: true, performed: true, implemented: true, designed: true,
+      analyzed: true, supported: true, optimized: true, improved: true, collaborated: true,
+      led: true, leading: true, work: true, team: true, project: true, role: true,
+      responsibilities: true, experience: true, results: true, data: true
+    };
+    return !text || stop[text] || text.length < 3;
+  }
+
+  function areKeywordsRedundant(a, b) {
+    if (!a || !b) return true;
+    if (a.normalized === b.normalized) return true;
+    if (a.normalized.indexOf(b.normalized) !== -1 || b.normalized.indexOf(a.normalized) !== -1) return true;
+    return false;
+  }
+
+  function areKeywordLabelsRedundant(a, b) {
+    var left = normalizeKeywordComparable(a);
+    var right = normalizeKeywordComparable(b);
+    return left && right && (left === right || left.indexOf(right) !== -1 || right.indexOf(left) !== -1);
+  }
+
+  function findBestMatchText(text, query) {
+    var direct = findTextMatch(text, query);
+    if (direct) return text.slice(direct.start, direct.end);
+
+    var words = String(query || "").split(/\s+/).filter(Boolean).sort(function (a, b) {
+      return b.length - a.length;
+    });
+    for (var i = 0; i < words.length; i += 1) {
+      if (isWeakKeyword(words[i])) continue;
+      var match = findTextMatch(text, words[i]);
+      if (match) return text.slice(match.start, match.end);
+    }
+    return "";
+  }
+
   function findAdjacentKeywordMatch(text, matches) {
-    if (!matches || matches.length < 2) return null;
-
-    var top = matches.slice(0, 2);
-    var label = top.map(polishKeywordLabel).join(" + ");
-    var match = findTextMatch(text, label);
-    if (!match) return null;
-
+    var selected = selectReadMoreKeywords((matches || []).map(function (label, index) {
+      return {
+        raw: label,
+        label: polishKeywordLabel(label),
+        matchText: findBestMatchText(text, label),
+        normalized: normalizeKeywordComparable(label),
+        score: 1000 - index * 20,
+        source: "jd"
+      };
+    }));
+    if (!selected.length) return null;
     return {
-      keyword: label,
-      matchText: text.slice(match.start, match.end)
+      keyword: selected.map(function (candidate) { return candidate.label; }).join(" + "),
+      matchText: selected[0].matchText || selected[0].raw
     };
   }
 
@@ -659,7 +901,8 @@
       .replace(/\bDeepLabv3\b/g, "DeepLabV3")
       .replace(/\bQ Learning\b/g, "Q-learning");
 
-    return text.length > 28 ? text.slice(0, 27).replace(/\s+\S*$/, "") + "..." : text;
+    if (text.length <= 28) return text;
+    return text.slice(0, 28).replace(/\s+\S*$/, "").trim() || text.slice(0, 28).trim();
   }
 
   function toggleExperienceDrawer(item, drawer) {

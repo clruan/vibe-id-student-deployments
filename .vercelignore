@@ -1,0 +1,39 @@
+.env
+.env.*
+.DS_Store
+.claude/
+node_modules/
+
+# Internal agents, user packets, test outputs, and generated examples.
+Resume-Agent-MVP/
+User_data/
+test-results/
+Vibe_ID_Generator/generated_examples/
+skills/
+Deliverables/
+
+# Historical/internal app versions that are not needed by the hosted generator.
+AI_Resume_AG/
+AI_Resume_HR_V1/
+AI_Resume_HR_V2/
+AI_Resume_User_V1/
+AI_Resume_User_V2/
+AI_Resume_User_V3_Arron/
+AI_Resume_User_V3_Duke/
+AI_Resume_User_V3_Frank/
+AI_Resume_User_V6/
+AI_Resume_User_V6_Aaron/
+AI_Resume_User_V6_Duke/
+AI_Resume_User_V6_Frank/
+AI_Resume_User_V6_Zach/
+AI_Resume_User_V7_AG/
+AI_Resume_V1/
+AI_Resume_V3_AG/
+AI_Resume_V4/
+AI_Resume_V5/
+AI_Resume_v2/
+AI_Resume_v3/
+Vibe ID_AL (student)/
+Vibe ID_RS (Student)/
+
+*.zip

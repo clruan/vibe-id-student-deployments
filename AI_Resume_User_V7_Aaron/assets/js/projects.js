@@ -356,50 +356,15 @@
   }
 
   function renderCheckDemoContent(data, project, state, stageIndex, stage) {
-    if (isAaronProfile(data)) {
-      return '<div class="algorithm-stage-row">' +
-          project.stages.map(function (s, i) {
-            return '<button class="stage-button ' + (i === stageIndex ? "active" : "") + '" type="button" data-stage-index="' + i + '">' + s.label + '</button>';
-          }).join("") +
-        '</div>' +
-
-        renderAaronStageFlow(stage) +
-
-        '<div class="pm-note">' +
-          '<p>' + stage.pmNote + '</p>' +
-        '</div>' +
-
-        renderWidgetPanel(project, state, stageIndex) +
-        '';
-    }
-
     return '<div class="algorithm-stage-row">' +
         project.stages.map(function (s, i) {
           return '<button class="stage-button ' + (i === stageIndex ? "active" : "") + '" type="button" data-stage-index="' + i + '">' + s.label + '</button>';
         }).join("") +
       '</div>' +
 
-      '<div class="algorithm-card-grid">' +
-        '<article class="algorithm-card">' +
-          '<p class="card-label">Input</p>' +
-          '<h4>' + stage.inputTitle + '</h4>' +
-          '<ul class="compact-list">' + stage.inputLines.map(function (l) { return '<li>' + l + '</li>'; }).join("") + '</ul>' +
-        '</article>' +
-        '<article class="algorithm-card emphasis">' +
-          '<p class="card-label">Logic</p>' +
-          '<h4>' + stage.operationTitle + '</h4>' +
-          '<ul class="compact-list">' + stage.operationLines.map(function (l) { return '<li>' + l + '</li>'; }).join("") + '</ul>' +
-        '</article>' +
-        '<article class="algorithm-card">' +
-          '<p class="card-label">Output</p>' +
-          '<h4>' + stage.outputTitle + '</h4>' +
-          '<ul class="compact-list">' + stage.outputLines.map(function (l) { return '<li>' + l + '</li>'; }).join("") + '</ul>' +
-        '</article>' +
-      '</div>' +
+      renderStageFlow(stage) +
 
-      '<div class="pm-note">' +
-        '<p>' + stage.pmNote + '</p>' +
-      '</div>' +
+      renderPmNote(stage.pmNote) +
 
       renderWidgetPanel(project, state, stageIndex);
   }
@@ -430,24 +395,42 @@
     '</div>';
   }
 
-  function renderAaronStageFlow(stage) {
+  function renderStageFlow(stage) {
     if (!stage) return "";
 
     return '<div class="aaron-flow-map">' +
-      renderAaronFlowNode("input", "Input", stage.inputTitle, stage.inputLines) +
+      renderFlowNode("input", "Input", stage.inputTitle, stage.inputLines) +
       '<div class="aaron-flow-arrow" aria-hidden="true">→</div>' +
-      renderAaronFlowNode("logic", "Logic", stage.operationTitle, stage.operationLines) +
+      renderFlowNode("logic", "Logic", stage.operationTitle, stage.operationLines) +
       '<div class="aaron-flow-arrow" aria-hidden="true">→</div>' +
-      renderAaronFlowNode("output", "Output", stage.outputTitle, stage.outputLines) +
+      renderFlowNode("output", "Output", stage.outputTitle, stage.outputLines) +
     '</div>';
   }
 
-  function renderAaronFlowNode(kind, label, title, lines) {
+  function renderFlowNode(kind, label, title, lines) {
     return '<article class="aaron-flow-node aaron-flow-node-' + kind + '">' +
       '<span class="card-label">' + label + '</span>' +
-      '<h4>' + title + '</h4>' +
-      '<ul class="compact-list">' + (lines || []).map(function (line) { return '<li>' + line + '</li>'; }).join("") + '</ul>' +
+      '<h4>' + clipText(title, 42) + '</h4>' +
+      '<ul class="compact-list">' + clipLines(lines, 2, 48).map(function (line) { return '<li>' + line + '</li>'; }).join("") + '</ul>' +
     '</article>';
+  }
+
+  function renderPmNote(note) {
+    var text = clipText(note, 110);
+    if (!text) return "";
+    return '<div class="pm-note pm-note-compact"><p>' + text + '</p></div>';
+  }
+
+  function clipLines(lines, count, max) {
+    return (lines || []).filter(Boolean).slice(0, count).map(function (line) {
+      return clipText(line, max);
+    });
+  }
+
+  function clipText(value, max) {
+    var text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text || text.length <= max) return text;
+    return text.slice(0, Math.max(4, max - 1)).replace(/\s+\S*$/, "") + "…";
   }
 
   function renderArtifactLinks(project) {

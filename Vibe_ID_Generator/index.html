@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>Vibe ID Generator</title>
+  <meta name="description" content="Generate source-backed V7 Vibe ID payloads from student resumes, materials, GitHub links, worksheets, and job descriptions.">
+  <link rel="stylesheet" href="assets/styles.css?v=20260605-vibe-generator">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Vibe ID Generator</h1>
+      </div>
+      <div class="topbar-actions" aria-label="Generator utilities">
+        <span class="status-pill status-dot is-idle" id="api-status" aria-label="Ready" title="Ready"></span>
+        <nav class="reference-links sample-links" aria-label="Sample V7 pages">
+          <span class="sample-links-label">Samples</span>
+          <a class="reference-link" href="../AI_Resume_User_V7/?profile=duke" target="_blank" rel="noreferrer" title="Open Duke sample V7">
+            <i data-lucide="user-round"></i>
+            <span>Duke</span>
+          </a>
+          <a class="reference-link" href="../AI_Resume_User_V7_Aaron/" target="_blank" rel="noreferrer" title="Open Aaron sample V7">
+            <i data-lucide="user-round"></i>
+            <span>Aaron</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <form class="panel source-panel" id="generator-form">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Source Intake</p>
+            <h2>Student Packet</h2>
+          </div>
+        </div>
+
+        <section class="form-section">
+          <div class="section-row section-row-tight">
+            <h3>Identity</h3>
+            <span class="optional-hint">Optional</span>
+          </div>
+          <div class="field-grid">
+            <label>
+              <span>Name</span>
+              <input id="student-name" name="name" type="text" autocomplete="name" placeholder="Student name">
+            </label>
+            <label>
+              <span>Target Role</span>
+              <input id="target-role" name="targetRole" type="text" placeholder="Auto from JD if empty">
+            </label>
+            <label>
+              <span>Email</span>
+              <input id="student-email" name="email" type="email" autocomplete="email" placeholder="email@example.com">
+            </label>
+            <label>
+              <span>Phone</span>
+              <input id="student-phone" name="phone" type="tel" autocomplete="tel" placeholder="+1 ...">
+            </label>
+            <label>
+              <span>LinkedIn</span>
+              <input id="student-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/...">
+            </label>
+            <label>
+              <span>GitHub</span>
+              <input id="student-github" name="github" type="url" placeholder="https://github.com/...">
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-row">
+            <h3>Resume</h3>
+            <span id="resume-state" class="state-label required-state">Required</span>
+          </div>
+          <label class="drop-zone resume-drop" id="resume-drop" for="resume-input">
+            <input id="resume-input" name="resume" type="file" accept=".pdf,.doc,.docx,.txt,.md">
+            <span class="mail-slot" aria-hidden="true"></span>
+            <span class="drop-icon"><i data-lucide="file-up"></i></span>
+            <strong>Drop resume here</strong>
+            <small>PDF, DOCX, TXT, or MD</small>
+          </label>
+        </section>
+
+        <section class="form-section">
+          <div class="section-row">
+            <h3>Materials</h3>
+            <span id="material-count" class="state-label">0 files</span>
+          </div>
+          <label class="drop-zone material-drop" id="materials-drop" for="materials-input">
+            <input id="materials-input" name="materials" type="file" multiple accept=".pdf,.doc,.docx,.txt,.md,.csv,.tsv,.json,.js,.ts,.py,.ipynb,.xlsx,.xls,.ppt,.pptx,.png,.jpg,.jpeg">
+            <span class="material-scan" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span class="drop-icon"><i data-lucide="folder-up"></i></span>
+            <strong>Artifacts, code, worksheet</strong>
+            <small>Project files, screenshots, Excel, GitHub exports</small>
+          </label>
+          <div class="file-list" id="file-list"></div>
+        </section>
+
+        <section class="form-section">
+          <h3>Source Notes</h3>
+          <textarea id="source-notes" rows="4" placeholder="Facts, project context, GitHub repo notes, portfolio URLs, constraints"></textarea>
+          <div class="source-actions">
+            <button class="ghost-button" type="button" id="load-demo">
+              <i data-lucide="wand-sparkles"></i>
+              <span>Load Sample Packet</span>
+            </button>
+          </div>
+        </section>
+      </form>
+
+      <section class="panel process-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Knit Process</p>
+            <h2>Generation State</h2>
+          </div>
+        </div>
+
+        <div class="remotion-frame">
+          <div id="remotion-root" class="remotion-root">
+            <div class="remotion-fallback">Loading motion preview</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel jd-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Job Target</p>
+            <h2>JD Control</h2>
+          </div>
+          <label class="run-control">
+            <span>Runs</span>
+            <select id="run-count">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="jd-grid" id="jd-grid"></div>
+
+        <label class="custom-jd">
+          <span>Job Description</span>
+          <textarea id="jd-text" rows="12"></textarea>
+        </label>
+
+        <div class="action-row">
+          <button class="primary-button" type="submit" form="generator-form" id="generate-button">
+            <i data-lucide="sparkles"></i>
+            <span>Generate Vibe ID</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <section class="result-panel" id="result-panel" aria-live="polite">
+      <div class="result-empty">
+        <i data-lucide="scan-search"></i>
+        <p>Downloadable V7 HTML variants will appear here.</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="assets/remotion-preview.js?v=20260605-vibe-generator"></script>
+  <script src="assets/app.js?v=20260605-vibe-generator"></script>
+</body>
+</html>
