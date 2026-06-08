@@ -15,7 +15,8 @@
       location: "San Diego, CA",
       phone: "+1 626-877-5905",
       email: "limingxuan513@gmail.com",
-      linkedin: "https://www.linkedin.com/in/mingxuanaaronli"
+      linkedin: "https://www.linkedin.com/in/mingxuanaaronli",
+      photo: "User_data/Aaron Li/1775700440236.jpg"
     },
 
     documents: {
