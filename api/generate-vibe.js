@@ -525,13 +525,14 @@ async function generateDraft(sourcePack, run, attempt) {
     "- Uploaded worksheets are first-class evidence. Extract product/project stages, user segments, MVP choices, blocker logs, metrics, and tool evidence from workbook text instead of treating worksheets as filenames.",
     "- Uploaded screenshots/images must be used as visual evidence when relevant. Attach them to the closest matching project through screenshots[].",
     "- Projects should include title/navTitle/source/summary/owned/metrics/relatedTech/stages/screenshots when evidence supports them.",
+    "- Return at least 2 projects. If the resume has no explicit Projects section, derive project-style evidence workflows from internships, coursework, worksheets, GitHub/code, screenshots, research papers, or source-backed resume accomplishments. Name the evidence boundary clearly.",
     "- Projects must be written like Duke V7 demos, not generic portfolio cards: name the workflow problem, the operating knob/lens, the evidence path, the output, and the honest limitation.",
     "- Project demo content must be flow-first and concise: 3 concrete stages by default, each stage renders as Input -> Logic -> Output.",
     "- For each stage, provide short titles and at most 1-2 short lines per column. Avoid paragraphs and vague stage labels like Research/Build/Result unless the source only supports that level.",
     "- When source supports a product, analytics, ML, clinical, finance, or evidence-review workflow, include a lightweight interactive demo scaffold through flow steps, not long explanation text. Do not invent screenshots, live links, or numeric metrics.",
     "- For every experience, include readMoreKeywords for hidden bullets after the first bullet. Each entry must be one or two high-signal keywords; join two with ' + '. Do not include ellipses, slashes, commas, trailing punctuation, or more than two concepts.",
     "- Include an ATS keyword layer only: target keywords, matched keywords, missing keywords, source-backed suggestions, and risk flags. Do not assign numeric scores.",
-    "- Keep V7 project count focused: 3-5 projects unless the source clearly needs more.",
+    "- Keep V7 project count focused: 2-5 projects unless the source clearly needs more. Never return an empty projects array.",
     "- Include riskFlags for overreach, missing evidence, stretch JD requirements, and source parsing limitations.",
     "",
     "[Return JSON schema]",
@@ -714,6 +715,7 @@ function normalizeV7Payload(draft, sourcePack, run) {
     payload.experience || [],
     sourcePack
   );
+  ensureProjectSkillRelations(payload, keywords);
   payload.atsProfile = Object.assign({}, payload.atsProfile, buildAtsKeywordLayer(payload, sourcePack));
   return payload;
 }
@@ -939,7 +941,7 @@ function normalizeExperience(items, keywords, stackLabels) {
 function normalizeProjects(items, keywords, experiences, sourcePack) {
   const source = normalizeArray(items);
   const fallbackTech = keywords.slice(0, 5).map(cleanId);
-  const projects = source.map((item, index) => {
+  let projects = source.map((item, index) => {
     const id = cleanId(item.id || item.title || "project-" + index);
     const title = cleanText(item.title || item.navTitle || "Selected Project");
     return {
@@ -962,8 +964,286 @@ function normalizeProjects(items, keywords, experiences, sourcePack) {
     };
   }).filter((project) => project.title || project.summary).slice(0, 6);
 
+  projects = ensureMinimumProjects(projects, keywords, experiences, sourcePack);
   attachImageEvidence(projects, sourcePack);
   return applyDukeProjectBlueprints(projects, keywords, experiences, sourcePack);
+}
+
+function ensureMinimumProjects(projects, keywords, experiences, sourcePack) {
+  const out = projects.slice(0, 6);
+  if (out.length >= 2) return out;
+
+  const seeds = buildFallbackProjectSeeds(experiences, sourcePack, keywords);
+  const existingIds = new Set(out.map((project) => project.id));
+  const existingTitles = new Set(out.map((project) => cleanComparable(project.title || project.navTitle)));
+
+  for (let i = 0; out.length < 2 && i < seeds.length; i += 1) {
+    const seed = seeds[i];
+    const titleKey = cleanComparable(seed.title);
+    if (!titleKey || existingTitles.has(titleKey)) continue;
+    const project = buildFallbackProject(seed, out.length, keywords, existingIds);
+    out.push(project);
+    existingIds.add(project.id);
+    existingTitles.add(cleanComparable(project.title));
+  }
+
+  while (out.length < 2) {
+    const seed = buildGenericFallbackSeed(out.length, sourcePack, keywords);
+    const project = buildFallbackProject(seed, out.length, keywords, existingIds);
+    out.push(project);
+    existingIds.add(project.id);
+  }
+
+  return out.slice(0, 6);
+}
+
+function buildFallbackProjectSeeds(experiences, sourcePack, keywords) {
+  const seeds = [];
+  const materials = normalizeArray(sourcePack.files).filter((file) => file.kind !== "resume");
+
+  materials.forEach((file) => {
+    const text = cleanSourceText(file.text || "");
+    const evidence = pickEvidenceLines(text, 3);
+    if (!evidence.length && !file.dataUrl) return;
+    const title = fallbackMaterialProjectTitle(file, keywords);
+    seeds.push({
+      title,
+      source: file.name,
+      summary: evidence[0] || "Uploaded visual evidence is available for this workflow.",
+      evidenceLines: evidence.length ? evidence : ["Uploaded file: " + file.name],
+      sourceType: /^(xlsx|xls|csv|tsv)$/i.test(file.extension) ? "worksheet" : (file.dataUrl ? "visual" : "material")
+    });
+  });
+
+  normalizeArray(experiences).forEach((exp) => {
+    const text = cleanSourceText([
+      exp.role,
+      exp.organization,
+      exp.dates,
+      normalizeStringArray(exp.bullets).join(". ")
+    ].join(". "));
+    const evidence = pickEvidenceLines(text, 3);
+    if (!evidence.length) return;
+    seeds.push({
+      title: fallbackExperienceProjectTitle(exp, keywords),
+      source: "Resume experience" + (exp.organization ? ": " + exp.organization : ""),
+      summary: evidence[0],
+      evidenceLines: evidence,
+      sourceType: "experience",
+      relatedExp: exp.id ? [exp.id] : []
+    });
+  });
+
+  pickEvidenceLines(sourcePack.resumeText, 6).forEach((line, index) => {
+    seeds.push({
+      title: fallbackResumeProjectTitle(line, index, keywords, sourcePack),
+      source: "Resume evidence",
+      summary: line,
+      evidenceLines: [line],
+      sourceType: "resume"
+    });
+  });
+
+  return seeds.filter(uniqueSeedTitle).slice(0, 10);
+}
+
+function buildFallbackProject(seed, index, keywords, existingIds) {
+  const title = cleanText(seed.title || "Source Evidence Workflow");
+  const id = uniqueProjectId(title, existingIds, index);
+  const evidenceLines = normalizeStringArray(seed.evidenceLines).slice(0, 3);
+  const tech = deriveProjectTech(seed, keywords);
+  return {
+    id,
+    title,
+    navTitle: title,
+    navMeta: cleanText(seed.source || "Source-backed evidence"),
+    source: cleanText(seed.source || "Uploaded source packet"),
+    summary: compactStageText(seed.summary || evidenceLines[0] || "Source-backed workflow derived from the uploaded resume packet.", 180),
+    algorithmSummary: "This project is generated from source evidence because the uploaded packet did not provide enough explicit project sections.",
+    owned: evidenceLines.length ? evidenceLines : ["Mapped available source evidence into a reviewable V7 workflow."],
+    metrics: [
+      { label: "Evidence", value: seed.sourceType || "resume", category: "Source" },
+      { label: "Workflow", value: "source-backed", category: "Review" }
+    ],
+    relatedTech: tech,
+    relatedExp: normalizeStringArray(seed.relatedExp),
+    screenshots: [],
+    stages: buildFallbackProjectStages(seed, keywords),
+    widget: null
+  };
+}
+
+function buildFallbackProjectStages(seed, keywords) {
+  const evidence = normalizeStringArray(seed.evidenceLines);
+  const primary = evidence[0] || seed.summary || "Uploaded source evidence";
+  const secondary = evidence[1] || keywords[0] || "target fit";
+  return [
+    stage("Frame", "Source input", [primary], "Map to JD", ["Extract backed signals"], "Evidence frame", [keywords[0] || "Role signal"], "Only source-backed claims are carried forward."),
+    stage("Operate", "Evidence frame", [secondary], "Build workflow", ["Group skills and proof"], "Review surface", ["Project demo", "Skill links"], "The project exists to make evidence inspectable."),
+    stage("Check", "Review surface", [keywords[1] || "missing evidence"], "Guard overclaiming", ["Flag gaps"], "V7 output", ["Concise project", "ATS keyword layer"], "Unsupported claims stay in risk flags.")
+  ];
+}
+
+function buildGenericFallbackSeed(index, sourcePack, keywords) {
+  const lines = pickEvidenceLines(sourcePack.resumeText, 2);
+  return {
+    title: (index === 0 ? "Resume Evidence Workflow" : "Role Fit Evidence Workflow"),
+    source: "Resume evidence",
+    summary: lines[index] || lines[0] || "Uploaded resume supplies the source boundary for this generated project.",
+    evidenceLines: lines.length ? lines : ["Resume uploaded for source-backed V7 generation."],
+    sourceType: "resume"
+  };
+}
+
+function fallbackMaterialProjectTitle(file, keywords) {
+  const name = captionFromFileName(file.name || "");
+  if (/worksheet|sheet|csv|tsv|xlsx|xls/i.test(file.name || file.extension || "")) return "Worksheet Evidence Workflow";
+  if (/screenshot|image|prototype|figma|product|demo/i.test(file.name || "")) return "Visual Product Evidence Workflow";
+  if (/research|paper|report/i.test(file.name || "")) return "Research Evidence Workflow";
+  return compactStageText((name || keywords[0] || "Uploaded Material") + " Workflow", 58);
+}
+
+function fallbackExperienceProjectTitle(exp, keywords) {
+  const role = cleanText(exp.role || "");
+  const org = cleanText(exp.organization || "");
+  if (role && org) return compactStageText(role + " Evidence Workflow", 58);
+  if (role) return compactStageText(role + " Workflow", 58);
+  return compactStageText((keywords[0] || "Experience") + " Evidence Workflow", 58);
+}
+
+function fallbackResumeProjectTitle(line, index, keywords, sourcePack) {
+  const rules = [
+    { pattern: /\b(dashboard|sql|excel|analytics?|reporting|conversion|metric|forecast)\b/i, title: "Analytics Dashboard Workflow" },
+    { pattern: /\b(product marketing|launch|messaging|gtm|campaign|positioning|market research|customer interview|competitor)\b/i, title: "Product Marketing Evidence Workflow" },
+    { pattern: /\b(finance|financial|valuation|dcf|investment|market pulse|research memo)\b/i, title: "Finance Research Workflow" },
+    { pattern: /\b(machine learning|model|python|nlp|classification|prediction)\b/i, title: "Applied Modeling Workflow" },
+    { pattern: /\b(clinical|biostat|survival|patient|study|research)\b/i, title: "Research Analysis Workflow" }
+  ];
+  const match = rules.find((rule) => rule.pattern.test(line));
+  if (match) return match.title;
+  const keyword = keywords.find((item) => containsTerm(line, item)) || keywords[index] || sourcePack.job.targetRole || "Resume Evidence";
+  return compactStageText(titleCase(keyword) + " Evidence Workflow", 58);
+}
+
+function pickEvidenceLines(text, limit) {
+  const seen = new Set();
+  return String(text || "")
+    .split(/\n+|[.!?]\s+/)
+    .map((line) => cleanText(line))
+    .filter((line) => {
+      if (line.length < 28 || line.length > 260) return false;
+      if (!/[A-Za-z]/.test(line)) return false;
+      if (!/\b(analy|built|created|developed|led|managed|optimized|modeled|researched|designed|implemented|evaluated|forecast|project|workflow|dashboard|market|product|data|user|financial|clinical|statistical|machine|python|sql|excel|research)\b/i.test(line)) return false;
+      const key = cleanComparable(line);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+function deriveProjectTech(seed, keywords) {
+  const text = [seed.title, seed.summary, normalizeStringArray(seed.evidenceLines).join(" ")].join(" ");
+  const matched = keywords.filter((keyword) => containsTerm(text, keyword)).map(cleanId);
+  return matched.concat(keywords.slice(0, 5).map(cleanId)).filter(unique).slice(0, 8);
+}
+
+function uniqueProjectId(title, existingIds, index) {
+  const base = cleanId(title || "project-" + index);
+  let id = base;
+  let suffix = 2;
+  while (existingIds.has(id)) {
+    id = base + "-" + suffix;
+    suffix += 1;
+  }
+  return id;
+}
+
+function uniqueSeedTitle(seed, index, list) {
+  const key = cleanComparable(seed.title);
+  return key && list.findIndex((item) => cleanComparable(item.title) === key) === index;
+}
+
+function ensureProjectSkillRelations(payload, keywords) {
+  const projects = normalizeArray(payload.projects);
+  if (!projects.length) return;
+
+  const projectIds = projects.map((project) => project.id).filter(Boolean);
+  const stackIds = normalizeArray(payload.stack).map((item) => item.id).filter(Boolean);
+  const fallbackStack = stackIds.length ? stackIds : keywords.slice(0, 5).map(cleanId);
+
+  projects.forEach((project, index) => {
+    const existing = normalizeStringArray(project.relatedTech).map(cleanId);
+    const matched = fallbackStack.filter((id) => projectTextMatchesSkill(project, id));
+    project.relatedTech = existing.concat(matched, fallbackStack.slice(index, index + 3), fallbackStack.slice(0, 2)).filter(unique).slice(0, 10);
+  });
+
+  normalizeArray(payload.stack).forEach((skill, index) => {
+    const id = cleanId(skill.id || skill.label || "");
+    if (!id) return;
+    skill.id = id;
+    if (projects.some((project) => normalizeStringArray(project.relatedTech).map(cleanId).includes(id))) return;
+    const target = bestProjectForSkill(projects, skill.label || id) || projects[index % projects.length];
+    target.relatedTech = [id].concat(normalizeStringArray(target.relatedTech).map(cleanId)).filter(unique).slice(0, 10);
+  });
+
+  [
+    payload.analyticalSkills,
+    payload.quantToolkit,
+    payload.licensesCertifications
+  ].forEach((items) => {
+    normalizeArray(items).forEach((item, index) => {
+      const existing = normalizeStringArray(item.relatedProjects).filter((id) => projectIds.includes(id));
+      if (existing.length) {
+        item.relatedProjects = existing;
+        return;
+      }
+      const label = item.label || item.name || "";
+      const ranked = projects.map((project) => ({
+        id: project.id,
+        score: projectSkillScore(project, label)
+      })).sort((a, b) => b.score - a.score);
+      const selected = ranked.filter((entry) => entry.score > 0).map((entry) => entry.id).slice(0, 2);
+      item.relatedProjects = (selected.length ? selected : [projects[index % projects.length].id]).filter(Boolean);
+    });
+  });
+}
+
+function bestProjectForSkill(projects, label) {
+  return projects.map((project) => ({
+    project,
+    score: projectSkillScore(project, label)
+  })).sort((a, b) => b.score - a.score)[0].project;
+}
+
+function projectSkillScore(project, label) {
+  const text = cleanSourceText([
+    project.title,
+    project.navTitle,
+    project.navMeta,
+    project.source,
+    project.summary,
+    project.algorithmSummary,
+    normalizeStringArray(project.owned).join(" "),
+    normalizeStringArray(project.relatedTech).join(" "),
+    normalizeArray(project.stages).map((stage) => [
+      stage.label,
+      stage.inputTitle,
+      normalizeStringArray(stage.inputLines).join(" "),
+      stage.operationTitle,
+      normalizeStringArray(stage.operationLines).join(" "),
+      stage.outputTitle,
+      normalizeStringArray(stage.outputLines).join(" ")
+    ].join(" ")).join(" ")
+  ].join(" "));
+  if (!label) return 0;
+  if (containsTerm(text, label)) return 1000;
+  const tokens = cleanId(label).split("-").filter((token) => token.length > 2);
+  return tokens.reduce((score, token) => score + (containsTerm(text, token) ? 120 : 0), 0);
+}
+
+function projectTextMatchesSkill(project, id) {
+  return projectSkillScore(project, id) > 0;
 }
 
 function normalizeEndorsement(value) {
@@ -1541,12 +1821,25 @@ function attachImageEvidence(projects, sourcePack) {
   const remaining = imageAssets.filter((asset) => !attachedNames.has(cleanComparable(asset.name)));
   if (!remaining.length) return;
 
-  const target = projects.find((project) => projectMatchesImageEvidence(project)) || projects[0];
+  const target = projects.find((project) => projectPrefersImageEvidence(project)) ||
+    projects.find((project) => projectMatchesImageEvidence(project)) ||
+    projects[0];
   target.screenshots = (target.screenshots || []).concat(remaining.map((asset, index) => ({
     src: asset.dataUrl,
     alt: captionFromFileName(asset.name) + " for " + (target.title || "project"),
     caption: captionFromFileName(asset.name) || "Screenshot " + (index + 1)
   }))).slice(0, 8);
+}
+
+function projectPrefersImageEvidence(project) {
+  const text = cleanComparable([
+    project.id,
+    project.title,
+    project.navTitle,
+    project.source,
+    project.summary
+  ].join(" "));
+  return /visual|screenshot|image|prototype|interface|figma|productevidence/.test(text);
 }
 
 function projectMatchesImageEvidence(project) {
@@ -1934,7 +2227,19 @@ function cleanComparable(value) {
 function containsTerm(text, term) {
   const source = cleanComparable(text);
   const needle = cleanComparable(term);
+  if (needle.length <= 2) {
+    return String(text || "")
+      .toLowerCase()
+      .split(/[^a-z0-9+#&.]+/i)
+      .map(cleanComparable)
+      .filter(Boolean)
+      .some((token) => token === needle);
+  }
   return needle && source.indexOf(needle) !== -1;
+}
+
+function titleCase(value) {
+  return cleanText(value).toLowerCase().replace(/\b[a-z0-9]/g, (char) => char.toUpperCase());
 }
 
 function inferName(text) {
