@@ -1021,6 +1021,27 @@ button svg,
   gap: 12px;
 }
 
+.result-warning {
+  border: 1px solid rgba(8, 127, 122, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(232, 248, 251, 0.62);
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.result-warning strong,
+.result-warning p {
+  margin: 0;
+}
+
+.result-warning p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .variant-card {
   display: grid;
   gap: 12px;

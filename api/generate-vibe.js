@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
 
 loadLocalEnv();
 
@@ -12,6 +11,16 @@ const MAX_SOURCE_CHARS = 42000;
 const MAX_FILE_TEXT_CHARS = 14000;
 
 const COLORS = ["#087f7a", "#2563eb", "#b7791f", "#2f8f46", "#c2413d", "#6d5bd0", "#0f766e", "#475569"];
+const GENERATED_VIBE_MARKERS = [
+  /<body[^>]*data-generated-vibe-id=["']true/i,
+  /window\.aiResumeData\s*=/i,
+  /window\.aiResumeDefaultProfile/i,
+  /window\.aiResumeProfileAliases/i,
+  /"kind"\s*:\s*"vibe-id-generator-v7"/i,
+  /\bvibe-id-generator-v7\b/i,
+  /\bGenerated Vibe ID V7\b/i,
+  /\bAI_Resume_User_V7\b/i
+];
 
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
@@ -47,6 +56,14 @@ module.exports = async function handler(req, res) {
     for (const file of files) {
       parsedFiles.push(await parseUploadedFile(file));
     }
+    const generatedInputs = parsedFiles.filter(isGeneratedVibeInput);
+    if (generatedInputs.length) {
+      return res.status(400).json({
+        error: "Generated Vibe ID pages or payloads are not valid source input. Upload original user data only: resume, worksheets, screenshots, code, GitHub notes, or source materials.",
+        files: generatedInputs.map((file) => file.name)
+      });
+    }
+
     const parsedResume = parsedFiles.find((file) => file.kind === "resume");
     if (!isUsableResumeFile(parsedResume)) {
       const detail = parsedResume && parsedResume.parseError ? " Parser: " + parsedResume.parseError : "";
@@ -57,27 +74,23 @@ module.exports = async function handler(req, res) {
 
     const sourcePack = buildSourcePack(student, job, parsedFiles);
     const variants = [];
+    const runErrors = [];
 
     for (let run = 1; run <= runs; run += 1) {
-      const draft = await generateDraft(sourcePack, run);
-      const payload = normalizeV7Payload(draft, sourcePack, run);
-      const html = buildV7Html(payload);
-      variants.push({
-        run,
-        payload,
-        html,
-        htmlFileName: buildHtmlFileName(payload, run),
-        diagnostics: {
-          evidenceFiles: parsedFiles.length,
-          parsedFiles: parsedFiles.map((file) => ({
-            name: file.name,
-            kind: file.kind,
-            parseMode: file.parseMode,
-            parseError: file.parseError || "",
-            textChars: file.text.length
-          })),
-          riskCount: payload.atsProfile.riskFlags.length
-        }
+      try {
+        variants.push(await generateVariant(sourcePack, run));
+      } catch (error) {
+        runErrors.push({
+          run,
+          error: cleanText(error.message || "Generation failed for this run.")
+        });
+      }
+    }
+
+    if (!variants.length) {
+      return res.status(502).json({
+        error: "Vibe ID generation failed for every run.",
+        runErrors
       });
     }
 
@@ -89,7 +102,8 @@ module.exports = async function handler(req, res) {
         label: job.label,
         targetRole: job.targetRole
       },
-      variants
+      variants,
+      runErrors
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Vibe ID generation failed." });
@@ -381,7 +395,6 @@ function buildSourcePack(student, job, files) {
     size: file.size
   }));
   const workbookFiles = files.filter((file) => /^(xlsx|xls|csv|tsv)$/i.test(file.extension));
-  const referenceV7 = loadKnownV7Reference(student, files);
   const inventory = files.map((file) => ({
     name: file.name,
     kind: file.kind,
@@ -398,7 +411,6 @@ function buildSourcePack(student, job, files) {
     file.dataUrl ? "Image data URL is available for embedding in the generated V7 HTML." : "",
     file.text || "(inventory only)"
   ].filter(Boolean).join("\n"));
-  const referenceText = referenceV7 ? summarizeReferenceV7(referenceV7) : "";
 
   const sourceText = [
     "[Student]",
@@ -419,8 +431,6 @@ function buildSourcePack(student, job, files) {
     "[Image Evidence]",
     imageAssets.map((file) => file.name + " - embeddable screenshot/image asset").join("\n"),
     "",
-    referenceText ? "[Known V7 Reference For This Student]\n" + referenceText : "",
-    "",
     "[File Inventory]",
     JSON.stringify(inventory, null, 2)
   ].join("\n").slice(0, MAX_SOURCE_CHARS);
@@ -432,7 +442,6 @@ function buildSourcePack(student, job, files) {
     inventory,
     imageAssets,
     workbookFiles,
-    referenceV7,
     resumeText: resume.text || "",
     materialText: materials.map((file) => file.text).filter(Boolean).join("\n\n").slice(0, 22000),
     sourceText,
@@ -450,200 +459,54 @@ function isUsableResumeFile(file) {
   return alphaCount >= 40;
 }
 
-function loadKnownV7Reference(student, files) {
-  const haystack = [
-    student.name,
-    student.email,
-    student.notes,
-    files.map((file) => file.name).join(" "),
-    files.map((file) => file.text).join(" ").slice(0, 4000)
-  ].join(" ");
+function isGeneratedVibeInput(file) {
+  const text = String(file && file.text || "");
+  const extension = cleanText(file && file.extension || "").toLowerCase();
+  const nameKey = cleanComparable(file && file.name || "");
+  if (/^(html|json|js|txt)$/i.test(extension) && /airesumeuserv7|generatedvibeid|vibeidgenerator/.test(nameKey)) return true;
+  return GENERATED_VIBE_MARKERS.some((pattern) => pattern.test(text));
+}
 
-  if (!/kailin/i.test(haystack)) return null;
+async function generateVariant(sourcePack, run) {
+  const draft = await generateDraftWithRetry(sourcePack, run);
+  const payload = normalizeV7Payload(draft, sourcePack, run);
+  const html = buildV7Html(payload);
+  return {
+    run,
+    payload,
+    html,
+    htmlFileName: buildHtmlFileName(payload, run),
+    diagnostics: {
+      evidenceFiles: sourcePack.files.length,
+      parsedFiles: sourcePack.files.map((file) => ({
+        name: file.name,
+        kind: file.kind,
+        parseMode: file.parseMode,
+        parseError: file.parseError || "",
+        textChars: file.text.length
+      })),
+      riskCount: payload.atsProfile.riskFlags.length
+    }
+  };
+}
 
-  const filePath = path.join(process.cwd(), "AI_Resume_User_V7", "assets", "data", "kailin.js");
-  try {
-    const code = fs.readFileSync(filePath, "utf8");
-    const sandbox = {
-      window: {
-        aiResumeData: {},
-        aiResumeProfileAliases: {}
-      }
-    };
-    vm.runInNewContext(code, sandbox, { timeout: 1000, filename: "kailin.js" });
-    return clonePlain(sandbox.window.aiResumeData["kailin-liu"]);
-  } catch (_) {
-    return null;
+async function generateDraftWithRetry(sourcePack, run) {
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      return await generateDraft(sourcePack, run, attempt);
+    } catch (error) {
+      lastError = error;
+    }
   }
+  throw lastError || new Error("DeepSeek generation failed.");
 }
 
-function summarizeReferenceV7(reference) {
-  if (!reference) return "";
-  const projects = normalizeArray(reference.projects).map((project) => [
-    project.id,
-    project.title,
-    project.source,
-    project.summary,
-    normalizeStringArray(project.owned).slice(0, 3).join("; ")
-  ].filter(Boolean).join(" | "));
-  const skills = normalizeStringArray(reference.analyticalSkills).concat(normalizeStringArray(reference.stack)).slice(0, 28);
-  return [
-    "Reference profile: " + (reference.profile && reference.profile.name || reference.id || "known student"),
-    "Use this only as a V7 style/source anchor for the same uploaded student.",
-    "Skill layout: " + JSON.stringify(reference.skillLayout || {}),
-    "Skills: " + skills.join(", "),
-    "Reference projects:",
-    projects.join("\n")
-  ].join("\n").slice(0, 9000);
-}
-
-function mergeReferenceV7Payload(payload, sourcePack) {
-  const reference = sourcePack.referenceV7;
-  if (!reference) return payload;
-
-  const localized = localizeReferenceMedia(clonePlain(reference), sourcePack);
-  const merged = Object.assign({}, payload);
-  const refProfile = localized.profile || {};
-  const generatedProfile = payload.profile || {};
-  const sourceTargetRole = cleanText(sourcePack.student.targetRole || sourcePack.job.targetRole || payload.targetRole || generatedProfile.targetRole || refProfile.targetRole);
-
-  merged.targetRole = sourceTargetRole || payload.targetRole;
-  merged.profile = Object.assign({}, refProfile, generatedProfile, {
-    name: generatedProfile.name || refProfile.name,
-    shortName: generatedProfile.shortName || refProfile.shortName || refProfile.name,
-    location: generatedProfile.location || refProfile.location || "",
-    phone: generatedProfile.phone || refProfile.phone || "",
-    email: generatedProfile.email || refProfile.email || "",
-    linkedin: generatedProfile.linkedin || refProfile.linkedin || "",
-    github: generatedProfile.github || refProfile.github || "",
-    targetRole: sourceTargetRole || generatedProfile.targetRole || refProfile.targetRole,
-    summary: generatedProfile.summary || refProfile.summary || "",
-    summaryHtml: generatedProfile.summaryHtml || refProfile.summaryHtml || ""
-  });
-  merged.links = mergeLinks(payload.links, localized.links);
-  merged.skillLayout = localized.skillLayout || payload.skillLayout;
-  merged.profileMaterialsMode = localized.profileMaterialsMode || payload.profileMaterialsMode;
-  merged.hideProfileSourceLinks = Boolean(localized.hideProfileSourceLinks || payload.hideProfileSourceLinks);
-  merged.hideAtsKeywordLayer = Boolean(localized.hideAtsKeywordLayer || payload.hideAtsKeywordLayer);
-
-  if (localized.analyticalSkills && localized.analyticalSkills.length) merged.analyticalSkills = localized.analyticalSkills;
-  if (localized.stack && localized.stack.length) merged.stack = localized.stack;
-  if (localized.licensesCertifications && localized.licensesCertifications.length) merged.licensesCertifications = localized.licensesCertifications;
-  if (localized.education && localized.education.length) merged.education = localized.education;
-  if (localized.coursework && localized.coursework.length) merged.coursework = localized.coursework;
-  if (localized.awards && localized.awards.length) merged.awards = localized.awards;
-  if (localized.publications) merged.publications = localized.publications;
-  if (localized.peerEvaluations && localized.peerEvaluations.length) merged.peerEvaluations = localized.peerEvaluations;
-  if (localized.results && localized.results.length) merged.results = localized.results;
-
-  if (localized.experience && localized.experience.length) {
-    merged.experience = cloneReferenceExperience(localized.experience, merged.atsProfile && merged.atsProfile.targetKeywords || [], (merged.stack || []).map((item) => item.label));
-  }
-  if (localized.projects && localized.projects.length) {
-    merged.projects = localized.projects.slice(0, 7).map((project) => normalizeReferenceProject(project));
-    attachImageEvidence(merged.projects, sourcePack);
-  }
-
-  merged.atsProfile = Object.assign({}, localized.atsProfile || {}, payload.atsProfile || {}, {
-    targetKeywords: mergeKeywords(
-      payload.atsProfile && payload.atsProfile.targetKeywords,
-      localized.atsProfile && localized.atsProfile.targetKeywords
-    ),
-    parseSignals: mergeKeywords(
-      localized.atsProfile && localized.atsProfile.parseSignals,
-      payload.atsProfile && payload.atsProfile.parseSignals
-    ),
-    riskFlags: mergeKeywords(
-      payload.atsProfile && payload.atsProfile.riskFlags,
-      localized.atsProfile && localized.atsProfile.riskFlags
-    )
-  });
-
-  merged.ui = Object.assign({}, localized.ui || {}, payload.ui || {
-    metaTitle: merged.profile.shortName + " | Generated Vibe ID V7"
-  });
-  merged.generation = Object.assign({}, payload.generation, {
-    referenceV7: localized.id || "known-v7-reference"
-  });
-
-  return merged;
-}
-
-function localizeReferenceMedia(reference, sourcePack) {
-  const imageMap = buildImageAssetMap(sourcePack);
-  if (reference.profile && reference.profile.photo) {
-    const asset = findImageAsset(reference.profile.photo, imageMap) || findImageAsset(reference.profile.name + " portrait", imageMap);
-    if (asset) reference.profile.photo = asset.dataUrl;
-  }
-  normalizeArray(reference.projects).forEach((project) => {
-    project.screenshots = normalizeArray(project.screenshots).map((shot, index) => {
-      const asset = findImageAsset(shot.src || shot.name || shot.caption, imageMap);
-      return Object.assign({}, shot, {
-        src: asset ? asset.dataUrl : shot.src,
-        alt: cleanText(shot.alt || project.title + " screenshot " + (index + 1)),
-        caption: cleanText(shot.caption || asset && captionFromFileName(asset.name) || "Screenshot " + (index + 1))
-      });
-    }).filter((shot) => shot && shot.src);
-  });
-  return reference;
-}
-
-function cloneReferenceExperience(items, keywords, stackLabels) {
-  return normalizeArray(items).map((item, index) => {
-    const bullets = Array.isArray(item.bullets) ? item.bullets.filter(Boolean).slice(0, 5) : [];
-    const explicit = normalizeStringArray(item.readMoreKeywords);
-    return {
-      id: cleanId(item.id || item.role || item.organization || "exp-" + index),
-      role: cleanText(item.role || "Experience"),
-      originalRole: cleanText(item.originalRole || ""),
-      organization: cleanText(item.organization || item.company || ""),
-      location: cleanText(item.location || ""),
-      dates: cleanText(item.dates || item.date || ""),
-      bullets,
-      readMoreKeywords: bullets.slice(1).map((bullet, hiddenIndex) =>
-        formatReadMoreKeyword(explicit[hiddenIndex] || chooseReadMoreKeyword(stripTags(bullet), keywords, stackLabels), keywords, stackLabels)
-      ).filter(Boolean),
-      relatedTech: normalizeStringArray(item.relatedTech).map(cleanId),
-      relatedProjects: normalizeStringArray(item.relatedProjects).map(cleanId)
-    };
-  }).filter((item) => item.bullets.length || item.role || item.organization).slice(0, 8);
-}
-
-function normalizeReferenceProject(project) {
-  const copy = clonePlain(project);
-  copy.id = cleanId(copy.id || copy.title || copy.navTitle || "project");
-  copy.title = cleanText(copy.title || copy.navTitle || "Selected Project");
-  copy.navTitle = cleanText(copy.navTitle || copy.title);
-  copy.navMeta = cleanText(copy.navMeta || copy.source || "");
-  copy.source = cleanText(copy.source || "");
-  copy.summary = cleanText(copy.summary || copy.tagline || "");
-  copy.owned = Array.isArray(copy.owned) ? copy.owned.map(cleanText).filter(Boolean).slice(0, 6) : [];
-  copy.metrics = normalizeMetrics(copy.metrics);
-  copy.relatedTech = normalizeStringArray(copy.relatedTech).map(cleanId);
-  copy.relatedExp = normalizeStringArray(copy.relatedExp).map(cleanId);
-  copy.stages = normalizeStages(copy.stages, copy.title);
-  copy.screenshots = normalizeArray(copy.screenshots).map((shot, index) => ({
-    src: cleanText(shot.src || ""),
-    alt: cleanText(shot.alt || copy.title + " screenshot " + (index + 1)),
-    caption: cleanText(shot.caption || "Screenshot " + (index + 1))
-  })).filter((shot) => shot.src).slice(0, 8);
-  return copy;
-}
-
-function mergeLinks(primary, secondary) {
-  const seen = new Set();
-  return normalizeArray(primary).concat(normalizeArray(secondary)).filter((link) => {
-    const key = cleanComparable((link && (link.href || link.value || link.label)) || "");
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, 8);
-}
-
-async function generateDraft(sourcePack, run) {
+async function generateDraft(sourcePack, run, attempt) {
   const system = [
     "You create source-backed Vibe ID V7 payload drafts.",
     "Use only the supplied resume text, source notes, uploaded materials, file inventory, GitHub/URL notes, and job description.",
+    "Never use a previous/generated Vibe ID page, generated V7 payload, or known student reference as evidence.",
     "Do not invent employers, dates, degrees, metrics, tools, management scope, cloud platforms, publications, GPA, or contact information.",
     "If evidence is missing, place the gap in riskFlags or missingEvidence instead of filling it.",
     "Return valid JSON only. No markdown fences."
@@ -651,11 +514,13 @@ async function generateDraft(sourcePack, run) {
 
   const user = [
     "[Task]",
-    `Generate V7 payload draft run ${run}.`,
+    `Generate V7 payload draft run ${run}, attempt ${attempt || 1}.`,
     `Target role: ${sourcePack.job.targetRole || "infer from JD"}.`,
+    attempt > 1 ? "Previous attempt failed JSON validation or upstream generation. Return one strict JSON object only." : "",
     "",
     "[V7 Rules]",
     "- profile, directory, atsProfile, stack, quantToolkit, experience, projects, education, coursework, profileMaterials, and ui should be present when source supports them.",
+    "- Source boundary is strict: original resume/user data/materials/JD only. Do not copy from or repair with any previous Vibe ID HTML, JS, or JSON.",
     "- Experience bullets should be source-backed and concise. Use 2-4 bullets for each included experience when the source supports more than one fact; the first bullet is the V7 preview and later bullets power Read more.",
     "- Uploaded worksheets are first-class evidence. Extract product/project stages, user segments, MVP choices, blocker logs, metrics, and tool evidence from workbook text instead of treating worksheets as filenames.",
     "- Uploaded screenshots/images must be used as visual evidence when relevant. Attach them to the closest matching project through screenshots[].",
@@ -731,12 +596,7 @@ async function generateDraft(sourcePack, run) {
   try {
     draft = parseJsonObject(content || "{}");
   } catch (error) {
-    if (!sourcePack.referenceV7) throw error;
-    draft = clonePlain(sourcePack.referenceV7);
-    draft.missingEvidence = normalizeStringArray(draft.missingEvidence).concat([
-      "DeepSeek returned malformed JSON, so the known V7 reference for the uploaded student was used as a structural fallback."
-    ]);
-    draft._parseWarning = error.message;
+    throw new Error("DeepSeek returned malformed JSON: " + error.message);
   }
   draft._meta = {
     elapsedSeconds: Math.round((Date.now() - started) / 100) / 10,
@@ -748,7 +608,6 @@ async function generateDraft(sourcePack, run) {
 function normalizeV7Payload(draft, sourcePack, run) {
   const student = sourcePack.student;
   const job = sourcePack.job;
-  const reference = sourcePack.referenceV7 || {};
   const profileDraft = draft.profile || {};
   const name = cleanText(profileDraft.name || student.name || inferName(sourcePack.resumeText) || "Generated Student");
   const shortName = cleanText(profileDraft.shortName || student.shortName || name);
@@ -757,15 +616,15 @@ function normalizeV7Payload(draft, sourcePack, run) {
     sourcePack.targetKeywords,
     draft.atsProfile && draft.atsProfile.targetKeywords
   ).slice(0, 30);
-  const stack = normalizeStack(draft.stack && draft.stack.length ? draft.stack : reference.stack, keywords);
+  const stack = normalizeStack(draft.stack, keywords);
   const stackLabels = stack.map((item) => item.label);
   const analyticalSkills = normalizeSkillItems(
-    draft.analyticalSkills && draft.analyticalSkills.length ? draft.analyticalSkills : reference.analyticalSkills,
+    draft.analyticalSkills,
     keywords,
     "analytical"
   );
   const licensesCertifications = normalizeSkillItems(
-    draft.licensesCertifications && draft.licensesCertifications.length ? draft.licensesCertifications : reference.licensesCertifications,
+    draft.licensesCertifications,
     [],
     "cert"
   );
@@ -812,10 +671,10 @@ function normalizeV7Payload(draft, sourcePack, run) {
       ]).slice(0, 8),
       riskFlags: risks
     },
-    skillLayout: normalizeSkillLayout(draft.skillLayout || reference.skillLayout, analyticalSkills, licensesCertifications),
-    profileMaterialsMode: cleanText(draft.profileMaterialsMode || reference.profileMaterialsMode || ""),
-    hideProfileSourceLinks: Boolean(draft.hideProfileSourceLinks || reference.hideProfileSourceLinks),
-    hideAtsKeywordLayer: Boolean(draft.hideAtsKeywordLayer || reference.hideAtsKeywordLayer),
+    skillLayout: normalizeSkillLayout(draft.skillLayout, analyticalSkills, licensesCertifications),
+    profileMaterialsMode: cleanText(draft.profileMaterialsMode || ""),
+    hideProfileSourceLinks: Boolean(draft.hideProfileSourceLinks),
+    hideAtsKeywordLayer: Boolean(draft.hideAtsKeywordLayer),
     analyticalSkills,
     licensesCertifications,
     stack,
@@ -849,7 +708,6 @@ function normalizeV7Payload(draft, sourcePack, run) {
     }
   };
 
-  payload = mergeReferenceV7Payload(payload, sourcePack);
   payload.projects = applyDukeProjectBlueprints(
     payload.projects || [],
     keywords,

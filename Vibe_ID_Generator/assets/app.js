@@ -450,6 +450,7 @@
 
   function renderResults(payload) {
     var variants = payload.variants || [];
+    var runErrors = payload.runErrors || [];
     if (!variants.length) {
       renderError("DeepSeek returned no V7 variants.");
       return;
@@ -460,6 +461,7 @@
       '<div><p class="eyebrow">Generation Complete</p><h2>' + escapeHtml(variants.length + " V7 variant" + (variants.length === 1 ? "" : "s")) + '</h2></div>',
       '<span class="status-pill">' + escapeHtml(payload.model || "DeepSeek") + '</span>',
       '</div>',
+      runErrors.length ? renderRunWarnings(runErrors) : "",
       '<div class="variant-grid">',
       variants.map(renderVariant).join(""),
       '</div>'
@@ -482,6 +484,17 @@
     });
 
     if (window.lucide) window.lucide.createIcons();
+  }
+
+  function renderRunWarnings(runErrors) {
+    return [
+      '<div class="result-warning">',
+      '<strong>Some runs were skipped</strong>',
+      '<p>' + escapeHtml(runErrors.map(function (item) {
+        return "Run " + item.run + ": " + item.error;
+      }).join("  ")) + '</p>',
+      '</div>'
+    ].join("");
   }
 
   function renderVariant(variant) {
