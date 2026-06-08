@@ -562,10 +562,10 @@ window.resumeContent = {
           "The mentor suggested expanding the model with additional factors, such as quality factors, to make the investment signal framework more robust."
       },
       screenshots: [
-        { src: "../User_data/Aaron Li/AI Product/New Screenshots/market-pulse-01-input-scenario-hd.png", alt: "Market Pulse ticker input and market scenario selector", caption: "Ticker Input + Market Scenario Selector" },
-        { src: "../User_data/Aaron Li/AI Product/New Screenshots/market-pulse-02-price-catalysts-hd.png", alt: "AAPL ticker brief with price context, company snapshot, and catalysts", caption: "Ticker Brief: Price Context + Catalysts" },
-        { src: "../User_data/Aaron Li/AI Product/New Screenshots/market-pulse-03-signals-technicals-flow-hd.png", alt: "Market Pulse technicals, fund flow, and composite signal panels", caption: "Signal Framework: Technicals + Flow Context" },
-        { src: "../User_data/Aaron Li/AI Product/New Screenshots/market-pulse-04-final-brief-hd.png", alt: "Market Pulse final composite read and next watchpoints", caption: "Final Composite + Watchpoints" }
+        { src: "assets/media/aaron/screenshots/market-pulse/market-pulse-01-input-scenario-hd.png", alt: "Market Pulse ticker input and market scenario selector", caption: "Ticker Input + Market Scenario Selector" },
+        { src: "assets/media/aaron/screenshots/market-pulse/market-pulse-02-price-catalysts-hd.png", alt: "AAPL ticker brief with price context, company snapshot, and catalysts", caption: "Ticker Brief: Price Context + Catalysts" },
+        { src: "assets/media/aaron/screenshots/market-pulse/market-pulse-03-signals-technicals-flow-hd.png", alt: "Market Pulse technicals, fund flow, and composite signal panels", caption: "Signal Framework: Technicals + Flow Context" },
+        { src: "assets/media/aaron/screenshots/market-pulse/market-pulse-04-final-brief-hd.png", alt: "Market Pulse final composite read and next watchpoints", caption: "Final Composite + Watchpoints" }
       ],
       summary:
         "Organizes news catalysts, technical position, and funds-flow context into a short analyst-style brief.",
@@ -767,10 +767,10 @@ window.resumeContent = {
         "Translated the findings into a practical takeaway for entry-level IB candidates: AI can accelerate research and first drafts, but modeling judgment, verification, client communication, and execution control remain central."
       ],
       screenshots: [
-        { src: "../User_data/Aaron Li/Research Agent/New Screenshots/research-agent-01-issue-tree-research-plan-hd.png", alt: "Research paper excerpt showing the title, abstract, and core thesis", caption: "Research Question and Core Thesis" },
-        { src: "../User_data/Aaron Li/Research Agent/New Screenshots/research-agent-02-hypotheses-evidence-framework-hd.png", alt: "Research paper excerpt showing Section 2 hypotheses and evidence standard", caption: "Hypothesis-Driven Research Design" },
-        { src: "../User_data/Aaron Li/Research Agent/New Screenshots/research-agent-03-evidence-counterevidence-source-quality-hd.png", alt: "Research paper excerpt showing evidence, counterevidence, and source-quality limits", caption: "Evidence and Counterevidence Analysis" },
-        { src: "../User_data/Aaron Li/Research Agent/New Screenshots/research-agent-04-final-findings-confidence-hd.png", alt: "Research paper excerpt showing conclusion findings and career implications", caption: "Final Findings and Career Implications" }
+        { src: "assets/media/aaron/screenshots/research-agent/research-agent-01-issue-tree-research-plan-hd.png", alt: "Research paper excerpt showing the title, abstract, and core thesis", caption: "Research Question and Core Thesis" },
+        { src: "assets/media/aaron/screenshots/research-agent/research-agent-02-hypotheses-evidence-framework-hd.png", alt: "Research paper excerpt showing Section 2 hypotheses and evidence standard", caption: "Hypothesis-Driven Research Design" },
+        { src: "assets/media/aaron/screenshots/research-agent/research-agent-03-evidence-counterevidence-source-quality-hd.png", alt: "Research paper excerpt showing evidence, counterevidence, and source-quality limits", caption: "Evidence and Counterevidence Analysis" },
+        { src: "assets/media/aaron/screenshots/research-agent/research-agent-04-final-findings-confidence-hd.png", alt: "Research paper excerpt showing conclusion findings and career implications", caption: "Final Findings and Career Implications" }
       ],
       summary:
         "A hypothesis-driven finance research workflow that turns a broad IB career question into claims, an issue tree, evidence tables, confidence ratings, and a final paper.",
