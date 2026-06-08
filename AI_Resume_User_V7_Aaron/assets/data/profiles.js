@@ -31,7 +31,7 @@
       profile: Object.assign({}, source.profile, {
         shortName: "Aaron Li",
         targetRole: "Investment research and AI-assisted finance workflow profile",
-        photo: source.profile.photo || "User_data/Aaron Li/1775700440236.jpg",
+        photo: source.profile.photo || "assets/media/aaron/aaron-profile.jpg",
         resume: rewriteAaronPath(source.profile.resume || "../User_data/Aaron Li/Aaron_Li_Resume.pdf")
       }),
       skillLayout: {

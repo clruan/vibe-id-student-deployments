@@ -230,7 +230,7 @@
   function getProfilePhoto(data) {
     var p = data.profile || {};
     if (p.photo || p.image || p.headshot) return p.photo || p.image || p.headshot;
-    if (data.id === "aaron-li") return "User_data/Aaron Li/1775700440236.jpg";
+    if (data.id === "aaron-li") return "assets/media/aaron/aaron-profile.jpg";
     return "";
   }
 

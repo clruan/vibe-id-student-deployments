@@ -9,6 +9,7 @@ window.resumeContent = {
     phone: "+1 626-877-5905",
     email: "limingxuan513@gmail.com",
     linkedin: "https://www.linkedin.com/in/mingxuanaaronli",
+    photo: "assets/media/aaron/aaron-profile.jpg",
     resume: "../User_data/Aaron Li/Aaron_Li_Resume.pdf"
   },
 
