@@ -24,8 +24,8 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
   let pathname = decodeURIComponent(url.pathname);
 
-  if (pathname === "/api/generate-vibe") {
-    handleGenerateApi(req, res);
+  if (pathname === "/api/generate-vibe" || pathname === "/api/parse-resume") {
+    handleApi(req, res, pathname === "/api/generate-vibe" ? "generate-vibe.js" : "parse-resume.js");
     return;
   }
 
@@ -54,7 +54,7 @@ server.listen(PORT, () => {
   console.log(`Vibe ID Generator: http://localhost:${PORT}/Vibe_ID_Generator/`);
 });
 
-function handleGenerateApi(req, res) {
+function handleApi(req, res, handlerFile) {
   const chunks = [];
   let size = 0;
   req.on("data", (chunk) => {
@@ -78,29 +78,34 @@ function handleGenerateApi(req, res) {
       return;
     }
 
-    const handlerPath = path.join(ROOT, "api", "generate-vibe.js");
-    delete require.cache[require.resolve(handlerPath)];
-    const handler = require(handlerPath);
-    const localReq = { method: req.method, body };
-    const localRes = {
-      statusCode: 200,
-      headers: {},
-      setHeader(key, value) {
-        this.headers[key] = value;
-      },
-      status(code) {
-        this.statusCode = code;
-        return this;
-      },
-      json(payload) {
-        res.writeHead(this.statusCode, Object.assign({ "Content-Type": "application/json" }, this.headers));
-        res.end(JSON.stringify(payload));
-      },
-      end(value) {
-        res.writeHead(this.statusCode, this.headers);
-        res.end(value);
-      }
-    };
-    await handler(localReq, localRes);
+    try {
+      const handlerPath = path.join(ROOT, "api", handlerFile);
+      delete require.cache[require.resolve(handlerPath)];
+      const handler = require(handlerPath);
+      const localReq = { method: req.method, body };
+      const localRes = {
+        statusCode: 200,
+        headers: {},
+        setHeader(key, value) {
+          this.headers[key] = value;
+        },
+        status(code) {
+          this.statusCode = code;
+          return this;
+        },
+        json(payload) {
+          res.writeHead(this.statusCode, Object.assign({ "Content-Type": "application/json" }, this.headers));
+          res.end(JSON.stringify(payload));
+        },
+        end(value) {
+          res.writeHead(this.statusCode, this.headers);
+          res.end(value);
+        }
+      };
+      await handler(localReq, localRes);
+    } catch (error) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: error.message || "Local API handler failed." }));
+    }
   });
 }

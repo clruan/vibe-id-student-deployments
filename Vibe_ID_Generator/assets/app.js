@@ -384,16 +384,51 @@
     });
   }
 
+  async function requestJson(url, options, label) {
+    var response;
+    try {
+      response = await fetch(url, options);
+    } catch (error) {
+      throw new Error((label || "API") + " route is unreachable. Use `npm run serve` locally or deploy the `/api` folder on Vercel. " + (error.message || ""));
+    }
+
+    var text = await response.text().catch(function () { return ""; });
+    var payload = {};
+    if (text) {
+      try {
+        payload = JSON.parse(text);
+      } catch (error) {
+        var preview = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140);
+        throw new Error((label || "API") + " returned non-JSON status " + response.status + (preview ? ": " + preview : "."));
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(formatApiError(payload, response.status, label || "API"));
+    }
+    return payload;
+  }
+
+  function formatApiError(payload, status, label) {
+    var message = payload && payload.error ? String(payload.error) : "";
+    var runErrors = payload && payload.runErrors || [];
+    if (runErrors.length) {
+      message += " " + runErrors.map(function (item) {
+        return "Run " + item.run + ": " + item.error;
+      }).join(" ");
+    }
+    if (!message) message = label + " failed with HTTP " + status + ".";
+    return message;
+  }
+
   async function parseResumeIdentity(resume) {
     if (!resume) return;
     try {
-      var response = await fetch("../api/parse-resume", {
+      var payload = await requestJson("../api/parse-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ file: resume })
-      });
-      var payload = await response.json().catch(function () { return {}; });
-      if (!response.ok) throw new Error(payload.error || "Resume identity parse failed.");
+      }, "Resume parser");
       if (payload.text) state.resume.text = String(payload.text || "").slice(0, MAX_TEXT_CHARS);
       state.resume.parseMode = payload.parseMode || state.resume.parseMode;
       state.resumeIdentity = payload.identity || {};
@@ -521,13 +556,11 @@
 
     try {
       var request = buildRequestPayload(jdText);
-      var response = await fetch("../api/generate-vibe", {
+      var payload = await requestJson("../api/generate-vibe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request)
-      });
-      var payload = await response.json().catch(function () { return {}; });
-      if (!response.ok) throw new Error(payload.error || "DeepSeek generation failed.");
+      }, "Vibe generator");
 
       stopGenerationTicker();
       state.variants = payload.variants || [];

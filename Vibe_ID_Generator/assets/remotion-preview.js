@@ -118,8 +118,6 @@ function contactLine(props) {
 function KnitScene(props) {
   const stage = Math.max(0, Math.min(STAGES.length - 1, Number(props.stage || 0)));
   const progress = Math.max(0.06, (stage + 1) / STAGES.length);
-  const terms = buildTickerTerms(props);
-  const loopTerms = terms.concat(terms);
   const name = compact(props.studentName, "Student Name");
   const role = compact(props.targetRole, "Target role");
   const contact = contactLine(props) || "Contact signals appear after resume parse";
@@ -173,17 +171,6 @@ function KnitScene(props) {
           React.createElement("span", null, props.variantCount ? props.variantCount + " HTML" : "knitting")
         )
       )
-    ),
-    React.createElement(
-      "section",
-      { className: "motion-jd-caption", "aria-label": "Job description reel" },
-      React.createElement(
-        "div",
-        { className: "motion-caption-track" },
-        loopTerms.map((term, index) =>
-          React.createElement("span", { key: term + index }, truncate(term, 34))
-        )
-      )
     )
   );
 }
@@ -217,8 +204,8 @@ function RemotionHost() {
   }, []);
 
   const composition = layout === "wide"
-    ? { width: 1120, height: 560 }
-    : (layout === "middle" ? { width: 760, height: 920 } : { width: 360, height: 520 });
+    ? { width: 1120, height: 520 }
+    : (layout === "middle" ? { width: 760, height: 860 } : { width: 360, height: 500 });
 
   return React.createElement(Player, {
     component: KnitScene,

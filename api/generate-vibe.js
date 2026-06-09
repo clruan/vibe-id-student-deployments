@@ -608,8 +608,9 @@ async function generateDraft(sourcePack, run, attempt) {
 
   const payload = await upstream.json().catch(() => ({}));
   if (!upstream.ok) {
-    const message = payload.error && payload.error.message ? payload.error.message : "DeepSeek request failed";
-    throw new Error(message);
+    const message = payload.error && payload.error.message ? payload.error.message :
+      (payload.error ? String(payload.error) : upstream.statusText || "DeepSeek request failed");
+    throw new Error("DeepSeek HTTP " + upstream.status + ": " + message);
   }
 
   const content = payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content;
