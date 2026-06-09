@@ -118,6 +118,14 @@ module.exports.config = {
   }
 };
 
+module.exports._internals = {
+  parseUploadedFile,
+  cleanText,
+  cleanSourceText,
+  isImageExtension,
+  mimeFromExtension
+};
+
 function loadLocalEnv() {
   if (process.env.DEEPSEEK_API_KEY) return;
   const candidates = [
@@ -161,7 +169,7 @@ function normalizeJob(input) {
 async function parseUploadedFile(file) {
   const name = cleanText(file.name || "uploaded-file");
   const extension = cleanText(file.extension || path.extname(name).slice(1)).toLowerCase();
-  const kind = file.kind === "resume" ? "resume" : "material";
+  const kind = file.kind === "resume" ? "resume" : (file.kind === "photo" ? "photo" : "material");
   const size = Number(file.size || 0);
   const base = {
     name,
@@ -386,8 +394,15 @@ function xmlDecode(value) {
 
 function buildSourcePack(student, job, files) {
   const resume = files.find((file) => file.kind === "resume") || {};
-  const materials = files.filter((file) => file.kind !== "resume");
-  const imageAssets = files.filter((file) => file.dataUrl && isImageExtension(file.extension)).map((file) => ({
+  const materials = files.filter((file) => file.kind !== "resume" && file.kind !== "photo");
+  const profilePhotoFile = files.find((file) => file.kind === "photo" && file.dataUrl && isImageExtension(file.extension));
+  const profilePhoto = profilePhotoFile ? {
+    name: profilePhotoFile.name,
+    dataUrl: profilePhotoFile.dataUrl,
+    type: profilePhotoFile.type || mimeFromExtension(profilePhotoFile.extension),
+    size: profilePhotoFile.size
+  } : null;
+  const imageAssets = files.filter((file) => file.kind !== "photo" && file.dataUrl && isImageExtension(file.extension)).map((file) => ({
     name: file.name,
     extension: file.extension,
     type: file.type || mimeFromExtension(file.extension),
@@ -431,6 +446,9 @@ function buildSourcePack(student, job, files) {
     "[Image Evidence]",
     imageAssets.map((file) => file.name + " - embeddable screenshot/image asset").join("\n"),
     "",
+    "[Profile Photo]",
+    profilePhoto ? profilePhoto.name + " - embeddable candidate headshot/profile photo" : "",
+    "",
     "[File Inventory]",
     JSON.stringify(inventory, null, 2)
   ].join("\n").slice(0, MAX_SOURCE_CHARS);
@@ -441,6 +459,7 @@ function buildSourcePack(student, job, files) {
     files,
     inventory,
     imageAssets,
+    profilePhoto,
     workbookFiles,
     resumeText: resume.text || "",
     materialText: materials.map((file) => file.text).filter(Boolean).join("\n\n").slice(0, 22000),
@@ -524,6 +543,7 @@ async function generateDraft(sourcePack, run, attempt) {
     "- Experience bullets should be source-backed and concise. Use 2-4 bullets for each included experience when the source supports more than one fact; the first bullet is the V7 preview and later bullets power Read more.",
     "- Uploaded worksheets are first-class evidence. Extract product/project stages, user segments, MVP choices, blocker logs, metrics, and tool evidence from workbook text instead of treating worksheets as filenames.",
     "- Uploaded screenshots/images must be used as visual evidence when relevant. Attach them to the closest matching project through screenshots[].",
+    "- Uploaded profile photo/headshot is only for profile.photo, not for project screenshots.",
     "- Projects should include title/navTitle/source/summary/owned/metrics/relatedTech/stages/screenshots when evidence supports them.",
     "- Return at least 2 projects. If the resume has no explicit Projects section, derive project-style evidence workflows from internships, coursework, worksheets, GitHub/code, screenshots, research papers, or source-backed resume accomplishments. Name the evidence boundary clearly.",
     "- Projects must be written like Duke V7 demos, not generic portfolio cards: name the workflow problem, the operating knob/lens, the evidence path, the output, and the honest limitation.",
@@ -648,6 +668,7 @@ function normalizeV7Payload(draft, sourcePack, run) {
       email: cleanText(profileDraft.email || student.email || ""),
       linkedin: cleanText(profileDraft.linkedin || student.linkedin || ""),
       github: cleanText(profileDraft.github || student.github || ""),
+      photo: cleanText(profileDraft.photo || "") || (sourcePack.profilePhoto && sourcePack.profilePhoto.dataUrl || ""),
       targetRole,
       summary: cleanText(profileDraft.summary || draft.directory && draft.directory.summary || ""),
       summaryHtml: emphasizeSummary(cleanText(profileDraft.summary || draft.directory && draft.directory.summary || ""), keywords)

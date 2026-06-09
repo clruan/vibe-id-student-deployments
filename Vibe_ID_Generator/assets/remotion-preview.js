@@ -1,30 +1,29 @@
 import React, { useEffect, useState } from "https://esm.sh/react@18.2.0";
 import { createRoot } from "https://esm.sh/react-dom@18.2.0/client";
 import { Player } from "https://esm.sh/@remotion/player@4.0.472?deps=react@18.2.0,react-dom@18.2.0";
-import { interpolate, useCurrentFrame } from "https://esm.sh/remotion@4.0.472?deps=react@18.2.0,react-dom@18.2.0";
 
 const STAGES = [
-  { label: "Intake", short: "Packet", detail: "Resume and artifacts" },
-  { label: "Parse", short: "Evidence", detail: "Resume, worksheet, screenshots, and source notes are parsed into evidence inventory" },
-  { label: "JD Map", short: "Signals", detail: "Job description requirements are mapped to source-backed proof signals" },
-  { label: "Intro", short: "Identity", detail: "Hero, summary, contact links, and target-role framing are drafted" },
-  { label: "Experience", short: "Bullets", detail: "Experience bullets and read-more keywords are generated with source constraints" },
-  { label: "Projects", short: "Proof", detail: "Projects, stages, screenshots, metrics, and materials are assembled" },
-  { label: "HTML", short: "Download", detail: "A downloadable self-contained V7 HTML page is packaged" }
+  { label: "Intake", detail: "Resume and artifacts" },
+  { label: "Parse", detail: "Evidence inventory" },
+  { label: "JD Map", detail: "Target signals" },
+  { label: "Intro", detail: "Hero and identity" },
+  { label: "Experience", detail: "Bullets and read-more" },
+  { label: "Projects", detail: "Proof and demos" },
+  { label: "HTML", detail: "Downloadable page" }
 ];
 
-const DEFAULT_KEYWORDS = [
+const DEFAULT_TERMS = [
   "data scientist",
   "python",
   "sql",
-  "r",
   "product analytics",
   "finance",
   "excel",
+  "market research",
   "machine learning",
   "forecasting",
-  "dashboard",
   "experimentation",
+  "dashboard",
   "user research"
 ];
 
@@ -39,30 +38,37 @@ function truncate(value, max) {
   return text.slice(0, Math.max(4, max - 3)).replace(/\s+\S*$/, "") + "...";
 }
 
-function normalizeKeyword(value) {
+function cleanTerm(value) {
   return String(value || "")
     .replace(/\.[A-Za-z0-9]+$/g, "")
     .replace(/[_/|]+/g, " ")
     .replace(/\b(resume|identity|role|ats|score|current|suggestion|materials?|files?|uploaded|download|html|pdf|docx?|xlsx?|csv|png|jpg|jpeg)\b/gi, " ")
-    .replace(/[^A-Za-z0-9+#.\s-]/g, " ")
+    .replace(/[^A-Za-z0-9+#&.\s-]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
 
-function addKeyword(out, value) {
-  const text = normalizeKeyword(value);
-  if (!text || text.length < 2 || text.length > 34) return;
-  const words = text.split(/\s+/).filter(Boolean);
-  if (words.length > 3) return;
+function addTerm(out, value) {
+  const text = cleanTerm(value);
+  if (!text || text.length < 2 || text.length > 38) return;
+  if (text.split(/\s+/).filter(Boolean).length > 4) return;
   const key = text.replace(/[^a-z0-9]+/g, "");
   if (!key || out.some((item) => item.replace(/[^a-z0-9]+/g, "") === key)) return;
   out.push(text);
 }
 
-function extractKnownKeywords(text, out) {
-  const haystack = String(text || "").toLowerCase();
-  DEFAULT_KEYWORDS.concat([
+function buildTickerTerms(props) {
+  const out = [];
+  (Array.isArray(props.keywordChips) ? props.keywordChips : []).forEach((item) => addTerm(out, item));
+  const text = [
+    props.jobText,
+    props.targetRole,
+    (props.materialNames || []).join(" "),
+    (props.experienceLines || []).join(" "),
+    (props.suggestions || []).join(" ")
+  ].join(" ").toLowerCase();
+  DEFAULT_TERMS.concat([
     "platform analytics",
     "google analytics",
     "a/b testing",
@@ -75,111 +81,107 @@ function extractKnownKeywords(text, out) {
     "biostatistics",
     "survival analysis",
     "nlp",
-    "fastapi",
-    "react",
-    "pytorch",
-    "tableau",
-    "sas",
-    "clinical data",
-    "market research"
-  ]).forEach((keyword) => {
-    if (haystack.includes(keyword.toLowerCase())) addKeyword(out, keyword);
+    "clinical data"
+  ]).forEach((term) => {
+    if (text.includes(term.toLowerCase())) addTerm(out, term);
   });
+  DEFAULT_TERMS.forEach((term) => addTerm(out, term));
+  return out.slice(0, 20);
 }
 
-function buildKeywordTicker(props) {
-  const out = [];
-  (Array.isArray(props.keywordChips) ? props.keywordChips : []).forEach((item) => addKeyword(out, item));
-  extractKnownKeywords([
-    props.targetRole,
-    (props.materialNames || []).join(" "),
-    (props.experienceLines || []).join(" "),
-    (props.suggestions || []).join(" ")
-  ].join(" "), out);
-  DEFAULT_KEYWORDS.forEach((keyword) => addKeyword(out, keyword));
-  return out.slice(0, 18);
+function buildSummary(props) {
+  if (props.previewSummary) return props.previewSummary;
+  const role = compact(props.targetRole, "target role");
+  const terms = buildTickerTerms(props).slice(0, 4).join(", ");
+  return "Source-backed profile being knitted for " + role + (terms ? " across " + terms + "." : ".");
+}
+
+function initials(name) {
+  return String(name || "V7")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "V7";
+}
+
+function contactLine(props) {
+  return [
+    props.email,
+    props.phone,
+    props.linkedin ? "LinkedIn" : "",
+    props.github ? "GitHub" : ""
+  ].filter(Boolean).join("  /  ");
 }
 
 function KnitScene(props) {
   const stage = Math.max(0, Math.min(STAGES.length - 1, Number(props.stage || 0)));
-  const fileCount = Number(props.fileCount || 0);
-  const variantCount = Number(props.variantCount || 0);
-  const frame = useCurrentFrame();
-  const pulse = interpolate(frame % 60, [0, 30, 59], [0.96, 1.04, 0.96]);
-  const drift = interpolate(frame % 120, [0, 60, 119], [-5, 5, -5]);
   const progress = Math.max(0.06, (stage + 1) / STAGES.length);
-  const keywords = buildKeywordTicker(props);
-  const loopKeywords = keywords.concat(keywords);
+  const terms = buildTickerTerms(props);
+  const loopTerms = terms.concat(terms);
+  const name = compact(props.studentName, "Student Name");
+  const role = compact(props.targetRole, "Target role");
+  const contact = contactLine(props) || "Contact signals appear after resume parse";
+  const photo = props.photoUrl || "";
+  const fileCount = Number(props.fileCount || 0);
+
   return React.createElement(
     "div",
     { className: "motion-stage" },
-    React.createElement("div", { className: "motion-depth-grid" }),
-    React.createElement("div", { className: "motion-poly motion-poly-a" }),
-    React.createElement("div", { className: "motion-poly motion-poly-b" }),
     React.createElement(
       "div",
-      { className: "motion-hero-card" },
-      React.createElement(
-        "div",
-        { className: "motion-title" },
-        React.createElement("span", null, "Knit Process"),
-        React.createElement("strong", null, STAGES[stage].label),
-        React.createElement("p", null, truncate(STAGES[stage].detail, 74))
-      ),
-      React.createElement(
-        "div",
-        { className: "motion-stage-meter" },
-        React.createElement("span", null, String(stage + 1)),
-        React.createElement("b", null, "/ " + STAGES.length)
-      ),
-      React.createElement(
-        "div",
-        { className: "motion-step-rail" },
-        React.createElement("i", { style: { width: `${progress * 100}%`, transform: `translateY(${Math.round(drift / 4)}px)` } }),
-        STAGES.map((item, index) =>
-          React.createElement(
-            "div",
-            {
-              key: item.label,
-              className: "motion-knot-wrap" + (index === stage ? " is-active" : "") + (index < stage ? " is-done" : ""),
-              style: { left: `${(index / Math.max(STAGES.length - 1, 1)) * 100}%`, transform: `translateX(-50%) scale(${index === stage ? pulse : 1})` },
-              tabIndex: 0,
-              title: item.detail
-            },
-            React.createElement("div", { className: "motion-knot" }, React.createElement("span", null, String(index + 1))),
-            React.createElement("strong", { className: "motion-step-label" }, item.label),
-            React.createElement("span", { className: "motion-step-detail" }, item.short),
-            React.createElement("span", { className: "motion-tooltip" }, item.detail)
-          )
+      { className: "motion-glass-steps", "aria-label": "Generation steps" },
+      React.createElement("div", { className: "motion-step-track" }, React.createElement("i", { style: { width: `${progress * 100}%` } })),
+      STAGES.map((item, index) =>
+        React.createElement(
+          "div",
+          {
+            key: item.label,
+            className: "motion-step-dot" + (index === stage ? " is-active" : "") + (index < stage ? " is-done" : ""),
+            style: { left: `${(index / Math.max(STAGES.length - 1, 1)) * 100}%` },
+            tabIndex: 0,
+            title: item.detail
+          },
+          React.createElement("span", null, String(index + 1)),
+          React.createElement("strong", null, item.label),
+          React.createElement("em", null, item.detail)
         )
-      ),
+      )
+    ),
+    React.createElement(
+      "section",
+      { className: "motion-vibe-preview", "aria-label": "Vibe ID intro preview" },
+      React.createElement("div", { className: "motion-preview-band" }, React.createElement("span", null, "VIBE ID")),
       React.createElement(
-        "section",
-        { className: "motion-keyword-panel", "aria-label": "Keyword reel" },
+        "div",
+        { className: "motion-preview-body" },
         React.createElement(
           "div",
-          { className: "motion-signal-line" },
-          React.createElement("span", null, fileCount + " files"),
-          React.createElement("span", null, variantCount ? variantCount + " outputs" : compact(props.studentName, "source-backed")),
-          React.createElement("span", null, compact(props.targetRole, "target fit"))
+          { className: "motion-preview-avatar" + (photo ? " has-photo" : "") },
+          photo ? React.createElement("img", { src: photo, alt: "" }) : React.createElement("span", null, initials(name))
         ),
+        React.createElement("h3", null, truncate(name, 34)),
+        React.createElement("p", { className: "motion-preview-role" }, truncate(role, 72)),
+        React.createElement("p", { className: "motion-preview-summary" }, truncate(buildSummary(props), 150)),
+        React.createElement("div", { className: "motion-preview-contact" }, truncate(contact, 96)),
         React.createElement(
           "div",
-          { className: "motion-keyword-ticker" },
-          React.createElement(
-            "div",
-            {
-              className: "motion-keyword-track",
-              style: { "--keyword-count": String(Math.max(keywords.length, 1)) }
-            },
-            loopKeywords.map((keyword, index) =>
-              React.createElement(
-                "span",
-                { className: "motion-keyword-chip", key: keyword + index },
-                truncate(keyword, 28)
-              )
-            )
-          )
+          { className: "motion-preview-build" },
+          React.createElement("span", null, fileCount + " source" + (fileCount === 1 ? "" : "s")),
+          React.createElement("span", null, STAGES[stage].label),
+          React.createElement("span", null, props.variantCount ? props.variantCount + " HTML" : "knitting")
+        )
+      )
+    ),
+    React.createElement(
+      "section",
+      { className: "motion-jd-caption", "aria-label": "Job description reel" },
+      React.createElement(
+        "div",
+        { className: "motion-caption-track" },
+        loopTerms.map((term, index) =>
+          React.createElement("span", { key: term + index }, truncate(term, 34))
         )
       )
     )
@@ -188,7 +190,7 @@ function KnitScene(props) {
 
 function RemotionHost() {
   const [state, setState] = useState({ stage: 0, fileCount: 0, variantCount: 0, materialNames: [], suggestions: [] });
-  const [wide, setWide] = useState(false);
+  const [layout, setLayout] = useState("mobile");
 
   useEffect(() => {
     const onStage = (event) => {
@@ -200,7 +202,10 @@ function RemotionHost() {
 
   useEffect(() => {
     const node = document.getElementById("remotion-root");
-    const update = () => setWide((node && node.clientWidth ? node.clientWidth : window.innerWidth) >= 760);
+    const update = () => {
+      const width = node && node.clientWidth ? node.clientWidth : window.innerWidth;
+      setLayout(width >= 760 ? "wide" : (width >= 420 ? "middle" : "mobile"));
+    };
     update();
     if (node && "ResizeObserver" in window) {
       const observer = new ResizeObserver(update);
@@ -211,16 +216,21 @@ function RemotionHost() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  const composition = layout === "wide"
+    ? { width: 1120, height: 560 }
+    : (layout === "middle" ? { width: 760, height: 920 } : { width: 360, height: 520 });
+
   return React.createElement(Player, {
     component: KnitScene,
     inputProps: state,
     durationInFrames: 180,
-    compositionWidth: wide ? 1120 : 320,
-    compositionHeight: wide ? 340 : 420,
+    compositionWidth: composition.width,
+    compositionHeight: composition.height,
     fps: 30,
     loop: true,
-    autoPlay: true,
+    autoPlay: false,
     controls: false,
+    acknowledgeRemotionLicense: true,
     style: { width: "100%", height: "100%" }
   });
 }

@@ -4,6 +4,9 @@
   var state = {
     selectedJdId: "duke_data_scientist",
     resume: null,
+    photo: null,
+    photoPreviewUrl: "",
+    resumeIdentity: null,
     materials: [],
     variants: [],
     suggestions: []
@@ -177,17 +180,23 @@
   ];
 
   var els = {};
+  var generationTicker = null;
 
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
     els.form = document.getElementById("generator-form");
     els.resumeInput = document.getElementById("resume-input");
+    els.photoInput = document.getElementById("photo-input");
     els.materialsInput = document.getElementById("materials-input");
     els.resumeDrop = document.getElementById("resume-drop");
+    els.photoDrop = document.getElementById("photo-drop");
+    els.photoPreview = document.getElementById("photo-preview");
+    els.photoState = document.getElementById("photo-state");
     els.materialsDrop = document.getElementById("materials-drop");
     els.fileList = document.getElementById("file-list");
     els.resumeState = document.getElementById("resume-state");
+    els.identityFeedback = document.getElementById("identity-feedback");
     els.materialCount = document.getElementById("material-count");
     els.jdGrid = document.getElementById("jd-grid");
     els.jdText = document.getElementById("jd-text");
@@ -201,8 +210,10 @@
     renderJdOptions();
     selectJd(state.selectedJdId);
     bindDropZone(els.resumeDrop, handleResumeFiles);
+    bindDropZone(els.photoDrop, handlePhotoFiles);
     bindDropZone(els.materialsDrop, handleMaterialFiles);
     els.resumeInput.addEventListener("change", function () { handleResumeFiles(els.resumeInput.files); });
+    els.photoInput.addEventListener("change", function () { handlePhotoFiles(els.photoInput.files); });
     els.materialsInput.addEventListener("change", function () { handleMaterialFiles(els.materialsInput.files); });
     els.form.addEventListener("submit", onSubmit);
     els.loadDemo.addEventListener("click", loadSamplePacket);
@@ -210,6 +221,7 @@
       if (state.selectedJdId !== "custom" && els.jdText.value !== getSelectedJd().text) {
         markCustomJd();
       }
+      dispatchMotionState();
     });
 
     if (window.lucide) window.lucide.createIcons();
@@ -237,6 +249,7 @@
     els.jdGrid.querySelectorAll(".jd-option").forEach(function (button) {
       button.classList.toggle("is-active", button.dataset.jdId === id);
     });
+    dispatchMotionState();
   }
 
   function markCustomJd() {
@@ -274,14 +287,39 @@
     var file = fileList && fileList[0];
     if (!file) return;
     setBusyLabel(els.resumeState, "Reading");
+    renderIdentityFeedback(null, "Reading resume identity");
     try {
       state.resume = await buildFilePayload(file, "resume");
       els.resumeState.textContent = trimMiddle(file.name, 28);
       animatePaperToSlot();
+      await parseResumeIdentity(state.resume);
       dispatchMotionState();
     } catch (error) {
       els.resumeState.textContent = "Read failed";
+      renderIdentityFeedback(null, "Resume identity could not be read");
       renderError(error.message || "Resume could not be read.");
+    }
+  }
+
+  async function handlePhotoFiles(fileList) {
+    var file = fileList && fileList[0];
+    if (!file) return;
+    if (!/image\/|\.((png)|(jpe?g)|(webp))$/i.test(file.type || file.name || "")) {
+      renderError("Upload a PNG, JPG, JPEG, or WebP profile photo.");
+      pulseNode(els.photoDrop);
+      return;
+    }
+
+    setBusyLabel(els.photoState, "Reading");
+    try {
+      if (state.photoPreviewUrl) URL.revokeObjectURL(state.photoPreviewUrl);
+      state.photo = await buildFilePayload(file, "photo");
+      state.photoPreviewUrl = URL.createObjectURL(file);
+      renderPhotoState();
+      dispatchMotionState();
+    } catch (error) {
+      els.photoState.textContent = "Read failed";
+      renderError(error.message || "Profile photo could not be read.");
     }
   }
 
@@ -346,6 +384,94 @@
     });
   }
 
+  async function parseResumeIdentity(resume) {
+    if (!resume) return;
+    try {
+      var response = await fetch("../api/parse-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file: resume })
+      });
+      var payload = await response.json().catch(function () { return {}; });
+      if (!response.ok) throw new Error(payload.error || "Resume identity parse failed.");
+      if (payload.text) state.resume.text = String(payload.text || "").slice(0, MAX_TEXT_CHARS);
+      state.resume.parseMode = payload.parseMode || state.resume.parseMode;
+      state.resumeIdentity = payload.identity || {};
+      applyIdentitySuggestions(state.resumeIdentity);
+      renderIdentityFeedback(payload);
+    } catch (error) {
+      state.resumeIdentity = {};
+      renderIdentityFeedback({ parseError: error.message || "Resume identity parse failed.", identity: {} });
+    }
+  }
+
+  function applyIdentitySuggestions(identity) {
+    var map = {
+      name: "student-name",
+      email: "student-email",
+      phone: "student-phone",
+      linkedin: "student-linkedin",
+      github: "student-github"
+    };
+    Object.keys(map).forEach(function (key) {
+      var value = identity && identity[key];
+      var node = document.getElementById(map[key]);
+      if (value && node && !node.value.trim()) {
+        node.value = value;
+        node.classList.add("is-autofilled");
+        setTimeout(function () { node.classList.remove("is-autofilled"); }, 1400);
+      }
+    });
+  }
+
+  function renderIdentityFeedback(payload, pendingText) {
+    if (!els.identityFeedback) return;
+    if (pendingText) {
+      els.identityFeedback.innerHTML = '<span class="identity-chip is-pending"><i data-lucide="loader-circle"></i>' + escapeHtml(pendingText) + '</span>';
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
+    var identity = payload && payload.identity || state.resumeIdentity || {};
+    var fields = [
+      ["name", "Name"],
+      ["email", "Email"],
+      ["phone", "Phone"],
+      ["linkedin", "LinkedIn"],
+      ["github", "GitHub"]
+    ];
+    var chips = fields.map(function (item) {
+      var key = item[0];
+      var label = item[1];
+      var value = identity[key] || "";
+      return '<span class="identity-chip ' + (value ? "is-found" : "is-missing") + '">' +
+        '<i data-lucide="' + (value ? "check" : "minus") + '"></i>' +
+        '<strong>' + label + '</strong>' +
+        '<span>' + escapeHtml(value ? trimMiddle(value, 30) : "not found") + '</span>' +
+      '</span>';
+    });
+    if (payload && payload.parseError) {
+      chips.push('<span class="identity-chip is-missing"><i data-lucide="triangle-alert"></i><strong>Parse</strong><span>' + escapeHtml(trimMiddle(payload.parseError, 42)) + '</span></span>');
+    } else if (payload && payload.textChars) {
+      chips.push('<span class="identity-chip is-found"><i data-lucide="scan-text"></i><strong>Text</strong><span>' + escapeHtml(payload.textChars + " chars") + '</span></span>');
+    }
+    els.identityFeedback.innerHTML = chips.join("");
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function renderPhotoState() {
+    if (!els.photoPreview || !els.photoState) return;
+    if (!state.photo) {
+      els.photoPreview.innerHTML = '<i data-lucide="image-plus"></i>';
+      els.photoState.textContent = "No photo";
+      els.photoDrop.classList.remove("has-photo");
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
+    els.photoPreview.innerHTML = '<img src="' + escapeAttr(state.photoPreviewUrl) + '" alt="">';
+    els.photoState.textContent = trimMiddle(state.photo.name, 24);
+    els.photoDrop.classList.add("has-photo");
+  }
+
   function renderFileList() {
     els.materialCount.textContent = state.materials.length + (state.materials.length === 1 ? " file" : " files");
     if (els.materialsDrop) els.materialsDrop.classList.toggle("has-files", state.materials.length > 0);
@@ -391,7 +517,7 @@
     await wait(260);
     setStage(2, "busy");
     await wait(260);
-    setStage(2, "busy");
+    startGenerationTicker();
 
     try {
       var request = buildRequestPayload(jdText);
@@ -403,6 +529,7 @@
       var payload = await response.json().catch(function () { return {}; });
       if (!response.ok) throw new Error(payload.error || "DeepSeek generation failed.");
 
+      stopGenerationTicker();
       state.variants = payload.variants || [];
       updateAtsStateFromVariant(state.variants[0]);
       setStage(3, "busy");
@@ -415,6 +542,7 @@
       setStage(6, "done");
       dispatchMotionState();
     } catch (error) {
+      stopGenerationTicker();
       setStage(0, "error");
       renderError(error.message || "Generation failed.");
     } finally {
@@ -444,7 +572,7 @@
         text: jdText,
         builtIn: jd.id !== "custom"
       },
-      files: [state.resume].concat(state.materials).filter(Boolean)
+      files: [state.resume].concat(state.photo ? [state.photo] : [], state.materials).filter(Boolean)
     };
   }
 
@@ -585,6 +713,16 @@
         "Conducted recurrent VTE survival analyses using Kaplan-Meier estimators, Cox models, and competing-risks models."
       ].join("\n")
     };
+    state.resumeIdentity = {
+      name: "Conglin (Duke) Ruan",
+      email: "ruanx070@umn.edu",
+      phone: "+1 651-280-7402",
+      linkedin: "https://www.linkedin.com/in/conglin-ruan-6587b8126/",
+      github: "https://github.com/ruan"
+    };
+    state.photo = null;
+    renderIdentityFeedback({ identity: state.resumeIdentity, textChars: state.resume.text.length });
+    renderPhotoState();
     state.materials = [
       {
         name: "nd2-analysis-pipeline README.md",
@@ -618,6 +756,23 @@
     dispatchMotionState({ stage: stage });
   }
 
+  function startGenerationTicker() {
+    stopGenerationTicker();
+    var stages = [2, 3, 4, 5];
+    var index = 0;
+    setStage(stages[index], "busy");
+    generationTicker = window.setInterval(function () {
+      index = (index + 1) % stages.length;
+      setStage(stages[index], "busy");
+    }, 1650);
+  }
+
+  function stopGenerationTicker() {
+    if (!generationTicker) return;
+    window.clearInterval(generationTicker);
+    generationTicker = null;
+  }
+
   function setVisualStatus(label) {
     if (!els.apiStatus) return;
     var stateName = String(label || "ready").toLowerCase();
@@ -647,17 +802,32 @@
     var profile = payload.profile || {};
     var detail = Object.assign({
       stage: 0,
-      fileCount: (state.resume ? 1 : 0) + state.materials.length,
+      fileCount: (state.resume ? 1 : 0) + (state.photo ? 1 : 0) + state.materials.length,
       variantCount: state.variants.length,
       resumeName: state.resume && state.resume.name || "",
       studentName: valueOf("student-name") || profile.name || "",
+      email: valueOf("student-email") || profile.email || "",
+      phone: valueOf("student-phone") || profile.phone || "",
+      linkedin: valueOf("student-linkedin") || profile.linkedin || "",
+      github: valueOf("student-github") || profile.github || "",
+      photoUrl: state.photoPreviewUrl || profile.photo || "",
       targetRole: valueOf("target-role") || profile.targetRole || (getSelectedJd() && getSelectedJd().targetRole) || "",
+      jobText: els.jdText && els.jdText.value || "",
+      previewSummary: buildMotionSummary(payload),
       materialNames: state.materials.map(function (file) { return file.name; }).slice(0, 8),
       experienceLines: getExperienceLines(payload),
       keywordChips: getMotionKeywords(payload),
       suggestions: state.suggestions
     }, extra || {});
     window.dispatchEvent(new CustomEvent("vibe-generator-stage", { detail: detail }));
+  }
+
+  function buildMotionSummary(payload) {
+    var profile = payload && payload.profile || {};
+    if (profile.summary) return profile.summary;
+    var role = valueOf("target-role") || getSelectedJd().targetRole || "target role";
+    var keywords = getMotionKeywords(payload || {}).slice(0, 4);
+    return "Source-backed Vibe ID intro for " + role + (keywords.length ? " using " + keywords.join(", ") + "." : ".");
   }
 
   function getMotionKeywords(payload) {

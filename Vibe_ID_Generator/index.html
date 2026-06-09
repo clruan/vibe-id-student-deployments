@@ -6,7 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-store">
   <title>Vibe ID Generator</title>
   <meta name="description" content="Generate source-backed V7 Vibe ID payloads from student resumes, materials, GitHub links, worksheets, and job descriptions.">
-  <link rel="stylesheet" href="assets/styles.css?v=20260605-vibe-generator">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/styles.css?v=20260609-intake-preview">
 </head>
 <body>
   <div class="app-shell">
@@ -69,6 +70,18 @@
               <span>GitHub</span>
               <input id="student-github" name="github" type="url" placeholder="https://github.com/...">
             </label>
+          </div>
+          <div class="identity-feedback" id="identity-feedback" aria-live="polite"></div>
+          <div class="identity-tools">
+            <label class="photo-drop" id="photo-drop" for="photo-input">
+              <input id="photo-input" name="photo" type="file" accept=".png,.jpg,.jpeg,.webp">
+              <span class="photo-preview" id="photo-preview"><i data-lucide="image-plus"></i></span>
+              <span>
+                <strong>Profile photo</strong>
+                <small>Optional headshot for the Vibe ID hero</small>
+              </span>
+            </label>
+            <span class="photo-state" id="photo-state">No photo</span>
           </div>
         </section>
 
@@ -174,7 +187,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script type="module" src="assets/remotion-preview.js?v=20260605-vibe-generator"></script>
-  <script src="assets/app.js?v=20260605-vibe-generator"></script>
+  <script type="module" src="assets/remotion-preview.js?v=20260609-intake-preview"></script>
+  <script src="assets/app.js?v=20260609-intake-preview"></script>
 </body>
 </html>
