@@ -9,6 +9,7 @@ window.resumeContent = {
     phone: "+1 626-877-5905",
     email: "limingxuan513@gmail.com",
     linkedin: "https://www.linkedin.com/in/mingxuanaaronli",
+    github: "https://github.com/limingxuan513-commits",
     photo: "assets/media/aaron/aaron-profile.jpg",
     resume: "../User_data/Aaron Li/Aaron_Li_Resume.pdf"
   },
@@ -527,6 +528,7 @@ window.resumeContent = {
   links: [
     { label: "Email", value: "limingxuan513@gmail.com", href: "mailto:limingxuan513@gmail.com" },
     { label: "LinkedIn", value: "linkedin.com/in/mingxuanaaronli", href: "https://www.linkedin.com/in/mingxuanaaronli" },
+    { label: "GitHub", value: "github.com/limingxuan513-commits", href: "https://github.com/limingxuan513-commits" },
     { label: "Resume PDF", value: "Open resume", href: "../User_data/Aaron Li/Aaron_Li_Resume.pdf" },
     { label: "Market Pulse Demo", value: "Live demo", href: "https://market-pulse-copilot-8wrk1wtvq-limingxuan513-commits-projects.vercel.app/" }
   ],
