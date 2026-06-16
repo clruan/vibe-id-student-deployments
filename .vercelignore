@@ -7,6 +7,10 @@ node_modules/
 # Internal agents, user packets, test outputs, and generated examples.
 Resume-Agent-MVP/
 User_data/
+!Vibe ID_AL (student)/User_data/
+!Vibe ID_AL (student)/User_data/**
+!Vibe ID_RS (Student)/User_data/
+!Vibe ID_RS (Student)/User_data/**
 test-results/
 Vibe_ID_Generator/generated_examples/
 skills/
