@@ -38,9 +38,13 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${host}:${port}`);
   const decodedPath = decodeURIComponent(url.pathname);
 
-  const requestPath = decodedPath === "/" && rootArg === "."
-    ? `/${defaultPage}/index.html`
-    : decodedPath;
+  if (decodedPath === "/" && rootArg === ".") {
+    res.writeHead(302, { Location: `/${defaultPage}/` });
+    res.end();
+    return;
+  }
+
+  const requestPath = decodedPath;
 
   let filePath = path.resolve(root, `.${requestPath}`);
 

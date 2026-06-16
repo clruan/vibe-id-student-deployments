@@ -42,8 +42,14 @@ function sendFile(res, filePath) {
 const server = http.createServer((req, res) => {
   const host = req.headers.host || "localhost";
   const requestedPath = decodeURIComponent(new URL(req.url, `http://${host}`).pathname);
-  const cleanPath = requestedPath === "/" ? "/AI_Resume_V4_Ruihang/index.html" : requestedPath;
-  const filePath = path.resolve(root, `.${cleanPath}`);
+  if (requestedPath === "/") {
+    res.writeHead(302, { Location: "/AI_Resume_V4_Ruihang/" });
+    res.end();
+    return;
+  }
+
+  const cleanPath = requestedPath;
+  let filePath = path.resolve(root, `.${cleanPath}`);
 
   if (!isInside(filePath, root)) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
@@ -52,6 +58,11 @@ const server = http.createServer((req, res) => {
   }
 
   fs.stat(filePath, (error, stats) => {
+    if (!error && stats.isDirectory()) {
+      filePath = path.join(filePath, "index.html");
+      stats = fs.existsSync(filePath) ? fs.statSync(filePath) : stats;
+    }
+
     if (error || !stats.isFile()) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("Not found");
