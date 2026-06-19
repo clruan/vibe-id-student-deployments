@@ -18,6 +18,16 @@
       "permanent": false
     },
     {
+      "source": "/AI_Resume_V4_Arron",
+      "destination": "/AI_Resume_User_V7_Aaron/sample-vibe-id/",
+      "permanent": false
+    },
+    {
+      "source": "/AI_Resume_V4_Arron/:path*",
+      "destination": "/AI_Resume_User_V7_Aaron/sample-vibe-id/:path*",
+      "permanent": false
+    },
+    {
       "source": "/sample-vibe-id",
       "destination": "/AI_Resume_User_V7_Aaron/sample-vibe-id/",
       "permanent": false
