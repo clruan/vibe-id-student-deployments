@@ -23,7 +23,7 @@
 
     header.innerHTML =
       '<div class="program-brand">' +
-        '<p class="eyebrow">Vibe ID</p>' +
+        '<p class="eyebrow">Vibe ID™</p>' +
         '<div>' +
           '<h1>' + (data.profile.shortName || data.profile.name) + '</h1>' +
           '<p class="program-brand-copy">Interactive resume focused on investment-banking research, market-signal synthesis, and AI-assisted finance workflow delivery.</p>' +
