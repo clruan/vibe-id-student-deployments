@@ -1,0 +1,1561 @@
+(function () {
+  const ns = window.aiResume || (window.aiResume = {});
+
+  /* ── Page 1: Hero ──────────────────────────── */
+
+  function renderPage1(data) {
+    var ui = data.ui || {};
+
+    renderHeroIdentity(data);
+    document.getElementById("results-title").textContent = ui.resultsTitle || "Featured AI Projects";
+    document.getElementById("experience-title").textContent = ui.experienceTitle || "Experience";
+    document.getElementById("projects-title").textContent = ui.projectsTitle || "Selected AI Projects";
+    document.getElementById("education-title").textContent = ui.educationTitle || "Education";
+    document.getElementById("awards-title").textContent = ui.awardsTitle || "Awards";
+    document.getElementById("coursework-title").textContent = ui.courseworkTitle || "Relevant Coursework & Applied Projects";
+
+    document.getElementById("hero-contact").innerHTML = buildContactMarkup(data);
+    renderSelectedResults(data);
+  }
+
+  function renderSelectedResults(data) {
+    var grid = document.getElementById("results-grid");
+    if (!grid) return;
+
+    var projects = getSelectedResultProjects(data);
+    grid.innerHTML = projects.map(function (project) {
+      var proof = renderResultEndorsementBadge(project, "proof");
+      return '<article class="result-project-card" style="--project-accent:' + (project.accent || "#4f46e5") + '">' +
+        '<div class="result-project-top">' +
+          '<div class="result-project-skill-wrap">' + renderProjectSkillStrip(data, project, 6, { hideOverflow: true }) + '</div>' +
+          proof +
+        '</div>' +
+        '<div class="result-project-main">' +
+          '<h3>' + (project.navTitle || project.title) + '</h3>' +
+          '<p class="result-project-meta">' + (project.navMeta || project.source || "Project") + '</p>' +
+          '<p class="result-project-summary">' + summarizeText(project.summary || project.algorithmSummary || "", 180) + '</p>' +
+        '</div>' +
+        '<div class="result-project-footer">' +
+          '<button class="result-demo-button" type="button" data-result-project="' + project.id + '">Check demo</button>' +
+        '</div>' +
+      '</article>';
+    }).join("");
+
+    grid.querySelectorAll("[data-result-project]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        openProjectFromResult(button.dataset.resultProject);
+      });
+    });
+  }
+
+  function renderResultEndorsementBadge(project, placement) {
+    var endorsement = project && project.endorsement;
+    if (!endorsement) return "";
+
+    var source = endorsement.company || endorsement.institution || endorsement.organization || endorsement.role || "Expert";
+    var person = endorsement.by || endorsement.name || "";
+    var isProof = placement === "proof";
+    var className = "result-endorsement-badge" + (placement === "proof" ? " result-endorsement-proof" : "");
+    var copy = isProof
+      ? '<strong>Expert endorsement</strong>' +
+        '<span class="result-endorsement-person">' + escapeHtml(stripTags(person || source)) + '</span>' +
+        (person && source ? '<span class="result-endorsement-source">' + escapeHtml(compactEndorsementSource(source)) + '</span>' : "")
+      : '<strong>Expert endorsement</strong>' +
+        '<span>' + escapeHtml(stripTags(person ? person + " · " + source : source)) + '</span>';
+
+    return '<div class="' + className + '" aria-label="Expert endorsement">' +
+      renderResultEndorsementLogo(endorsement) +
+      '<span class="result-endorsement-badge-copy">' +
+        copy +
+      '</span>' +
+    '</div>';
+  }
+
+  function compactEndorsementSource(value) {
+    return stripTags(value)
+      .replace(/\bCapital Management\b/g, "Capital Mgmt")
+      .replace(/\bGuideStone Capital Mgmt\b/g, "GuideStone CM")
+      .replace(/\bManagement\b/g, "Mgmt")
+      .replace(/\bUniversity\b/g, "Univ.")
+      .replace(/\bMinnesota\b/g, "MN")
+      .trim();
+  }
+
+  function renderResultEndorsementLogo(endorsement) {
+    if (endorsement.logoSrc) {
+      return '<span class="result-endorsement-logo">' +
+        '<img src="' + endorsement.logoSrc + '" alt="' + (resultEndorsementLogoAlt(endorsement)) + '" loading="lazy" onerror="this.remove();this.parentElement.classList.add(\'is-placeholder\');">' +
+        '<span class="result-endorsement-logo-fallback">' + resultEndorsementLogoText(endorsement) + '</span>' +
+      '</span>';
+    }
+
+    return '<span class="result-endorsement-logo is-placeholder" aria-hidden="true">' +
+      '<span class="result-endorsement-logo-fallback">' + resultEndorsementLogoText(endorsement) + '</span>' +
+    '</span>';
+  }
+
+  function resultEndorsementLogoAlt(endorsement) {
+    return stripTags(endorsement.logoAlt || endorsement.company || endorsement.institution || endorsement.organization || "Company logo");
+  }
+
+  function resultEndorsementLogoText(endorsement) {
+    var source = endorsement.logoText || endorsement.company || endorsement.institution || endorsement.organization || endorsement.by || "Expert";
+    var words = stripTags(source).split(/\s+/).filter(Boolean);
+    if (!words.length) return "EX";
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+
+  function getSelectedResultProjects(data) {
+    var projects = data.projects || [];
+    var seen = {};
+    var ordered = projects.filter(function (project) {
+      return project.endorsement;
+    }).concat(projects).filter(function (project) {
+      if (!project || seen[project.id]) return false;
+      seen[project.id] = true;
+      return true;
+    });
+    return ordered.slice(0, 2);
+  }
+
+  function renderProjectSkillStrip(data, project, limit, options) {
+    if (!ns.skills || !ns.skills.getProjectSkillItems || !ns.skills.renderSkillPills) return "";
+    return ns.skills.renderSkillPills(
+      ns.skills.getProjectSkillItems(data, project),
+      Object.assign({ limit: limit || 5 }, options || {})
+    );
+  }
+
+  function summarizeText(value, maxLength) {
+    var text = stripTags(value).replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength - 1).replace(/\s+\S*$/, "") + "...";
+  }
+
+  function openProjectFromResult(projectId) {
+    var page = document.getElementById("page-3");
+    if (page) page.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(function () {
+      var item = document.querySelector('.project-accordion-item[data-project-id="' + projectId + '"]');
+      if (!item) return;
+      var header = item.querySelector(".project-accordion-header");
+      if (header && !item.classList.contains("is-expanded")) header.click();
+      item.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 220);
+  }
+
+  function renderHeroIdentity(data) {
+    var p = data.profile || {};
+    var identity = document.querySelector(".hero-identity");
+    var role = p.targetRole || data.targetRole || (data.directory && data.directory.role) || "";
+    var summary = p.summaryHtml || p.summary || "";
+    var initials = getInitials(p.shortName || p.name || "");
+    var photo = getProfilePhoto(data);
+
+    if (!identity) {
+      document.getElementById("hero-name").textContent = p.name || "";
+      document.getElementById("hero-summary").innerHTML = summary;
+      attachHeroSummaryToggle(document.getElementById("hero-summary"));
+      document.getElementById("hero-contact").innerHTML = buildContactMarkup(data);
+      return;
+    }
+
+    identity.innerHTML = '<article class="linkedin-profile-card">' +
+      '<div class="linkedin-cover" aria-hidden="true">' +
+        '<span>AI Resume</span>' +
+      '</div>' +
+      '<div class="linkedin-profile-body">' +
+        '<div class="linkedin-avatar-row">' +
+          '<div class="linkedin-avatar" aria-hidden="true">' +
+            (photo ? '<img src="' + photo + '" alt="" onerror="this.remove(); this.parentElement.classList.remove(\'has-photo\');">' : "") +
+            '<span>' + initials + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hero-text">' +
+          '<div class="hero-title-row">' +
+            '<h1 id="hero-name">' + (p.name || "") + '</h1>' +
+          '</div>' +
+          (role ? '<p class="hero-headline">' + role + '</p>' : "") +
+          '<p class="hero-summary" id="hero-summary">' + summary + '</p>' +
+          '<div class="hero-contact" id="hero-contact">' + buildContactMarkup(data) + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</article>';
+
+    attachHeroSummaryToggle(document.getElementById("hero-summary"));
+  }
+
+  function attachHeroSummaryToggle(summaryEl) {
+    if (!summaryEl || summaryEl.dataset.toggleBound === "1") return;
+
+    function evaluate() {
+      summaryEl.classList.remove("is-expanded");
+      var truncated = summaryEl.scrollHeight - summaryEl.clientHeight > 1;
+      var existingToggle = summaryEl.parentElement && summaryEl.parentElement.querySelector(".hero-summary-toggle");
+
+      if (!truncated) {
+        if (existingToggle) existingToggle.remove();
+        return;
+      }
+
+      if (existingToggle) return;
+
+      var toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "hero-summary-toggle";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.textContent = "Read more";
+      toggle.addEventListener("click", function () {
+        var expanded = summaryEl.classList.toggle("is-expanded");
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        toggle.textContent = expanded ? "Show less" : "Read more";
+      });
+      summaryEl.insertAdjacentElement("afterend", toggle);
+    }
+
+    summaryEl.dataset.toggleBound = "1";
+    evaluate();
+    window.addEventListener("resize", function () { window.requestAnimationFrame(evaluate); });
+  }
+
+  function getInitials(name) {
+    var parts = String(name || "").replace(/\([^)]*\)/g, " ").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "AI";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function getProfilePhoto(data) {
+    var p = data.profile || {};
+    if (p.photo || p.image || p.headshot) return p.photo || p.image || p.headshot;
+    if (data.id === "aaron-li") return "assets/media/aaron/aaron-profile.jpg";
+    return "";
+  }
+
+  function buildContactMarkup(data) {
+    var p = data.profile || {};
+    var items = [];
+
+    if (p.location) {
+      items.push('<span>' + p.location + '</span>');
+    }
+
+    if (p.phone) {
+      items.push('<span>' + p.phone + '</span>');
+    }
+
+    if (Array.isArray(data.links) && data.links.length) {
+      data.links.forEach(function (link) {
+        if (!link || !link.href || !link.value) return;
+        items.push('<a href="' + link.href + '" target="_blank" rel="noreferrer">' + link.value + '</a>');
+      });
+      return items.join("");
+    }
+
+    if (p.email) {
+      items.push('<a href="mailto:' + p.email + '">' + p.email + '</a>');
+    }
+
+    if (p.website) {
+      items.push('<a href="' + p.website + '" target="_blank" rel="noreferrer">Website</a>');
+    }
+
+    if (p.github) {
+      items.push('<a href="' + p.github + '" target="_blank" rel="noreferrer">GitHub</a>');
+    }
+
+    if (p.linkedin) {
+      items.push('<a href="' + p.linkedin + '" target="_blank" rel="noreferrer">LinkedIn</a>');
+    }
+
+    if (p.scholar) {
+      items.push('<a href="' + p.scholar + '" target="_blank" rel="noreferrer">Google Scholar</a>');
+    }
+
+    return items.join("");
+  }
+
+  /* ── Page 3: Experience ────────────────────── */
+
+  function renderExperience(data, callbacks) {
+    var container = document.getElementById("experience-list");
+    var experiences = ns.skills && ns.skills.getFilteredExperience
+      ? ns.skills.getFilteredExperience(data, window.aiResumeState || {})
+      : data.experience;
+
+    if (!experiences.length) {
+      container.innerHTML = '<div class="filter-empty-state">' +
+        '<h3>No experiences match the selected skills.</h3>' +
+        '<p>Clear one filter or choose a broader skill combination.</p>' +
+      '</div>';
+      return;
+    }
+
+    container.innerHTML = experiences
+      .map(function (item, index) {
+        var expId = item.id || getExperienceId(data, item, index);
+        var endorsement = ns.modes && ns.modes.renderVipEndorsement
+          ? ns.modes.renderVipEndorsement(item.endorsement, {
+              eyebrow: "Endorsement",
+              variant: "experience"
+            })
+          : "";
+        var relatedProjects = renderExperienceProjects(data, item);
+        return '<article class="experience-item" data-exp-id="' + expId + '">' +
+          '<div class="experience-head">' +
+            '<div class="experience-title-row">' +
+              renderOrgLogo(item.organization, item.location) +
+              '<div>' +
+                '<h3>' + item.role + '</h3>' +
+                '<p class="experience-org">' + item.organization + (item.location ? " \u00b7 " + item.location : "") + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<p class="experience-dates">' + item.dates + '</p>' +
+          '</div>' +
+          renderExperiencePreview(item) +
+          renderExperienceKeywordRail(data, item, expId) +
+          renderExperienceDrawer(data, item, expId) +
+          renderExperienceSkillStrip(data, item, expId) +
+          renderExperienceContext(data, item) +
+          relatedProjects +
+          endorsement +
+        '</article>';
+      })
+      .join("");
+
+    function animateExperienceState(item, mode) {
+      if (typeof gsap === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      if (mode === "hover") {
+        gsap.to(item, {
+          y: -5,
+          scale: 1.006,
+          duration: 0.42,
+          ease: "power3.out"
+        });
+        return;
+      }
+
+      if (mode === "active") {
+        gsap.to(item, {
+          y: -4,
+          scale: 1.01,
+          duration: 0.58,
+          ease: "back.out(1.3)"
+        });
+        return;
+      }
+
+      gsap.to(item, {
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: "expo.out"
+      });
+    }
+
+    // Bind interaction events
+    container.querySelectorAll(".experience-item").forEach(function(item) {
+      item.addEventListener("mouseenter", function() {
+        if (!item.classList.contains("is-active")) {
+          animateExperienceState(item, "hover");
+        }
+        if (callbacks && callbacks.onExperienceHover) callbacks.onExperienceHover(item.dataset.expId);
+      });
+      item.addEventListener("mouseleave", function() {
+        if (!item.classList.contains("is-active")) {
+          animateExperienceState(item, "rest");
+        }
+        if (callbacks && callbacks.onExperienceLeave) callbacks.onExperienceLeave();
+      });
+      item.addEventListener("click", function() {
+        var expId = item.dataset.expId;
+        var isActive = item.classList.contains("is-active");
+
+        container.querySelectorAll(".experience-item").forEach(function(el) {
+          el.classList.remove("is-active");
+          if (el !== item) {
+            animateExperienceState(el, "rest");
+          }
+        });
+
+        if (!isActive) {
+          item.classList.add("is-active");
+          animateExperienceState(item, "active");
+          if (callbacks && callbacks.onExperienceActivate) callbacks.onExperienceActivate(expId);
+        } else {
+          animateExperienceState(item, "rest");
+          if (callbacks && callbacks.onExperienceDeactivate) callbacks.onExperienceDeactivate();
+        }
+      });
+    });
+
+    container.querySelectorAll(".experience-detail-drawer").forEach(function (drawer) {
+      drawer.addEventListener("click", function (event) {
+        event.stopPropagation();
+      });
+
+      var summary = drawer.querySelector("summary");
+      var item = drawer.closest(".experience-item");
+      if (!summary || !item) return;
+
+      summary.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleExperienceDrawer(item, drawer);
+      });
+    });
+  }
+
+  function getExperienceId(data, item, fallbackIndex) {
+    var index = (data.experience || []).indexOf(item);
+    return "exp-" + (index === -1 ? fallbackIndex : index);
+  }
+
+  function renderOrgLogo(name, meta) {
+    if (ns.icons && ns.icons.renderOrgLogo) {
+      return ns.icons.renderOrgLogo(name, meta);
+    }
+    return '<span class="org-logo is-placeholder"><span>' + getInitials(name || "Organization") + '</span></span>';
+  }
+
+  function renderExperiencePreview(item) {
+    var first = Array.isArray(item.bullets) && item.bullets.length ? item.bullets[0] : "";
+    if (!first) return "";
+    return '<ul class="experience-preview-list">' +
+      '<li>' + first + '</li>' +
+    '</ul>';
+  }
+
+  function renderExperienceKeywordRail(data, item, expId) {
+    var bullets = getHiddenBulletModels(data, item);
+    if (!bullets.length) return "";
+    var tokens = [];
+    bullets.forEach(function (bullet) {
+      getBulletTokens(bullet).forEach(function (token) {
+        tokens.push(token);
+      });
+    });
+    if (!tokens.length) return "";
+
+    return '<div class="experience-keyword-rail" aria-label="Hidden bullet keywords">' +
+      tokens.map(function (token, index) {
+        return '<span class="exp-keyword-token" data-exp-keyword="' + expId + '" data-keyword-index="' + index + '">' + escapeHtml(token.keyword) + '</span>';
+      }).join("") +
+    '</div>';
+  }
+
+  function renderExperienceDrawer(data, item, expId) {
+    var bullets = getHiddenBulletModels(data, item);
+    if (!bullets.length) return "";
+    var keywordIndex = 0;
+
+    return '<details class="experience-detail-drawer" data-exp-drawer="' + expId + '">' +
+      '<summary>Read more</summary>' +
+      '<ul class="compact-list experience-extra-list">' +
+        bullets.map(function (bullet) {
+          var html = renderExpandedBulletText(bullet, expId, keywordIndex);
+          keywordIndex += getBulletTokens(bullet).length;
+          return '<li>' + html + '</li>';
+        }).join("") +
+      '</ul>' +
+    '</details>';
+  }
+
+  function getHiddenBulletModels(data, item) {
+    var bullets = Array.isArray(item.bullets) ? item.bullets.slice(1) : [];
+    var models = bullets.map(function (bullet, index) {
+      var model = extractBulletKeyword(data, bullet, index, item);
+      var tokens = normalizeBulletTokens(model, stripTags(bullet));
+      return {
+        text: stripTags(bullet),
+        keyword: model.keyword,
+        matchText: model.matchText,
+        tokens: tokens,
+        index: index,
+        score: ns.skills && ns.skills.scoreTextForJob
+          ? ns.skills.scoreTextForJob(data, tokens.map(function (token) { return token.keyword; }).join(" ") + " " + stripTags(bullet))
+          : 0
+      };
+    });
+
+    if (data.preserveOriginalExperienceText) return models;
+
+    return models.sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.index - b.index;
+    });
+  }
+
+  function extractBulletKeyword(data, value, fallbackIndex, item) {
+    var html = String(value || "");
+    var plain = stripTags(html);
+    var configured = getConfiguredReadMoreKeyword(item, fallbackIndex);
+    var candidates = [];
+
+    if (configured) {
+      if (typeof configured === "object") {
+        if (Array.isArray(configured.keywords)) {
+          var configuredTokens = configured.keywords.map(function (token) {
+            var tokenKeyword = token && (token.keyword || token.label || token.text) || "";
+            var tokenMatch = token && (token.matchText || tokenKeyword) || "";
+            return {
+              keyword: tokenKeyword,
+              matchText: findBestMatchText(plain, tokenMatch) || findBestMatchText(plain, tokenKeyword)
+            };
+          }).filter(function (token) {
+            return token.keyword;
+          });
+          if (configuredTokens.length) {
+            return {
+              keyword: configuredTokens[0].keyword,
+              matchText: configuredTokens[0].matchText,
+              tokens: configuredTokens
+            };
+          }
+        }
+        var exactKeyword = configured.keyword || configured.label || configured.text || "";
+        var exactMatch = configured.matchText || exactKeyword;
+        if (exactKeyword) {
+          return {
+            keyword: exactKeyword,
+            matchText: findBestMatchText(plain, exactMatch) || findBestMatchText(plain, exactKeyword)
+          };
+        }
+      }
+      var formatted = formatReadMoreKeywordLabel(configured);
+      if (formatted) {
+        return {
+          keyword: formatted,
+          matchText: findBestMatchText(plain, formatted) || findBestMatchText(plain, configured)
+        };
+      }
+    }
+
+    var matches = ns.skills && ns.skills.getJobKeywordMatches
+      ? ns.skills.getJobKeywordMatches(data, html)
+      : [];
+    matches.forEach(function (label, index) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 1120 - index * 18, "jd");
+    });
+
+    getSkillKeywordLabels(data, item).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 860, "skill");
+    });
+
+    getStrongPhrases(html).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 760, "strong");
+    });
+
+    getMetricPhrases(plain).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 690, "metric");
+    });
+
+    getSignalPhrases(plain).forEach(function (label) {
+      addKeywordCandidate(candidates, label, findBestMatchText(plain, label), 540, "signal");
+    });
+
+    var selected = selectReadMoreKeywords(candidates);
+    if (selected.length) {
+      return {
+        keyword: selected[0].label,
+        matchText: selected[0].matchText || selected[0].raw
+      };
+    }
+
+    return {
+      keyword: "",
+      matchText: ""
+    };
+  }
+
+  function getConfiguredReadMoreKeyword(item, fallbackIndex) {
+    var values = item && (item.readMoreKeywords || item.readMoreKeyword);
+    if (!values) return "";
+    if (!Array.isArray(values)) return values;
+    var direct = values[fallbackIndex];
+    if (typeof direct === "string") return direct;
+    if (direct && typeof direct === "object") return direct;
+    return "";
+  }
+
+  function normalizeBulletTokens(model, text) {
+    if (model && Array.isArray(model.tokens) && model.tokens.length) {
+      return model.tokens.map(function (token) {
+        return {
+          keyword: token.keyword,
+          matchText: token.matchText || findBestMatchText(text, token.keyword)
+        };
+      }).filter(function (token) {
+        return token.keyword;
+      });
+    }
+
+    if (!model || !model.keyword) return [];
+    return [{
+      keyword: model.keyword,
+      matchText: model.matchText || findBestMatchText(text, model.keyword)
+    }];
+  }
+
+  function getBulletTokens(bullet) {
+    if (!bullet) return [];
+    if (Array.isArray(bullet.tokens) && bullet.tokens.length) return bullet.tokens;
+    if (!bullet.keyword) return [];
+    return [{ keyword: bullet.keyword, matchText: bullet.matchText }];
+  }
+
+  function formatReadMoreKeywordLabel(value) {
+    var labels = [];
+    splitReadMoreKeywordParts(value).forEach(function (part) {
+      var cleaned = cleanKeywordPhrase(part);
+      if (!cleaned || isWeakKeyword(cleaned)) return;
+      var label = polishKeywordLabel(cleaned);
+      if (!label) return;
+      var normalized = normalizeKeywordComparable(label);
+      if (!normalized || labels.some(function (existing) { return normalizeKeywordComparable(existing) === normalized || areKeywordLabelsRedundant(existing, label); })) return;
+      labels.push(label);
+    });
+    return labels.sort(function (a, b) {
+      return scoreKeywordPhrase(b) - scoreKeywordPhrase(a);
+    })[0] || "";
+  }
+
+  function splitReadMoreKeywordParts(value) {
+    return String(value || "")
+      .replace(/…+|\.{2,}/g, " ")
+      .replace(/\s+\+\s+/g, " | ")
+      .replace(/\s+\/\s+/g, " | ")
+      .replace(/\s*,\s*/g, " | ")
+      .replace(/\s*;\s*/g, " | ")
+      .replace(/\s+\band\b\s+/gi, " | ")
+      .split("|")
+      .map(function (part) { return part.replace(/\s+/g, " ").trim(); })
+      .filter(Boolean);
+  }
+
+  function addKeywordCandidate(candidates, value, matchText, score, source) {
+    var raw = stripTags(value || "").replace(/\s+/g, " ").trim();
+    if (!raw) return;
+
+    var cleaned = cleanKeywordPhrase(raw);
+    if (!cleaned || isWeakKeyword(cleaned)) return;
+
+    var normalized = normalizeKeywordComparable(cleaned);
+    if (!normalized || normalized.length < 3) return;
+
+    var existing = candidates.filter(function (candidate) {
+      return candidate.normalized === normalized;
+    })[0];
+    var candidate = {
+      raw: cleaned,
+      label: polishKeywordLabel(cleaned),
+      matchText: matchText || cleaned,
+      normalized: normalized,
+      score: score + scoreKeywordPhrase(cleaned),
+      source: source
+    };
+    if (!isHighQualityReadMoreCandidate(candidate)) return;
+
+    if (!existing) {
+      candidates.push(candidate);
+    } else if (candidate.score > existing.score) {
+      existing.raw = candidate.raw;
+      existing.label = candidate.label;
+      existing.matchText = candidate.matchText;
+      existing.score = candidate.score;
+      existing.source = candidate.source;
+    }
+  }
+
+  function selectReadMoreKeywords(candidates) {
+    var ranked = candidates.filter(function (candidate) {
+      return candidate && candidate.label;
+    }).sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.raw.length - a.raw.length;
+    });
+
+    if (!ranked.length) return [];
+    return [ranked[0]];
+  }
+
+  function selectedConceptCount(selected) {
+    return splitReadMoreKeywordParts(selected.map(function (candidate) {
+      return candidate.label || candidate.raw || "";
+    }).join(" + ")).length;
+  }
+
+  function getSkillKeywordLabels(data, item) {
+    var labels = [];
+    var related = {};
+
+    (item && item.relatedTech || []).forEach(function (id) { related[id] = true; });
+    (data.stack || []).forEach(function (skill) {
+      if (related[skill.id] || related[skill.label]) labels.push(skill.label || skill.id);
+    });
+    (data.quantToolkit || []).forEach(function (tool) {
+      labels.push(tool.label);
+    });
+
+    return labels.filter(Boolean);
+  }
+
+  function getStrongPhrases(html) {
+    var out = [];
+    var pattern = /<strong[^>]*>(.*?)<\/strong>/gi;
+    var match;
+    while ((match = pattern.exec(String(html || "")))) {
+      var text = stripTags(match[1]);
+      if (text) out.push(text);
+      var compact = compactStrongPhrase(text);
+      if (compact && compact !== text) out.push(compact);
+    }
+    return out;
+  }
+
+  function compactStrongPhrase(value) {
+    var words = stripTags(value).split(/\s+/).filter(Boolean);
+    if (words.length <= 3) return words.join(" ");
+    var filtered = words.filter(function (word) {
+      return !isWeakKeyword(word);
+    });
+    if (filtered.length >= 2) return filtered.slice(-3).join(" ");
+    return words.slice(-3).join(" ");
+  }
+
+  function getMetricPhrases(text) {
+    var out = [];
+    var source = String(text || "");
+    var pattern = /(?:under\s+)?(?:[$¥]\s*)?\d[\d,]*(?:\.\d+)?(?:[KMB])?\+?%?(?:\/\d+(?:\.\d+)?)?(?:\s*(?:daily\s+)?(?:years?|months?|mo|samples?|views?|registrations?|accuracy|CPM|CTR|CVR|CPA|CPC|GPA|GMV|UV|click\s+UV|channels?|events?|features?|patients?|documents?|hours?|campaigns?|brands?|placements?))?/gi;
+    var match;
+    while ((match = pattern.exec(source))) {
+      var raw = match[0].trim();
+      if (!raw || /^\d$/.test(raw)) continue;
+      var after = source.slice(match.index + match[0].length).match(/^\s+(accuracy|samples?|views?|registrations?|channels?|events?|features?|patients?|documents?|labor|CPM|CTR|CVR|CPA|CPC|GPA|GMV|UV)\b/i);
+      out.push(after ? raw + " " + after[1] : raw);
+    }
+    return out;
+  }
+
+  function getSignalPhrases(text) {
+    var out = [];
+    var source = String(text || "");
+    var pattern = /\b(?:[A-Z][A-Za-z0-9+.#-]*|[A-Z]{2,}|[A-Za-z]+(?:[-/][A-Za-z0-9+.#]+)+)(?:\s+(?:[A-Z][A-Za-z0-9+.#-]*|[A-Z]{2,}|[a-z][A-Za-z0-9+.#-]{2,})){0,2}\b/g;
+    var match;
+    while ((match = pattern.exec(source))) {
+      var phrase = match[0].trim();
+      if (phrase) out.push(phrase);
+    }
+    return out;
+  }
+
+  function cleanKeywordPhrase(value) {
+    var text = String(value || "")
+      .replace(/…+|\.{2,}/g, " ")
+      .replace(/[()[\]{}"“”‘’]/g, " ")
+      .replace(/\s*[;:,.]\s*$/g, "")
+      .replace(/\b(?:such as|including|using|through|across)\b\s*/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    var words = text.split(/\s+/).filter(Boolean);
+
+    while (words.length && isWeakKeyword(words[0])) words.shift();
+    while (words.length && isWeakKeyword(words[words.length - 1])) words.pop();
+    if (!words.length) return "";
+
+    if (words.length > 4) words = words.slice(-4);
+    return words.join(" ");
+  }
+
+  function scoreKeywordPhrase(value) {
+    var text = String(value || "");
+    var score = 0;
+    if (/\d/.test(text)) score += 120;
+    if (/[A-Z]{2,}/.test(text)) score += 90;
+    if (/\b(AI|LLM|SQL|Python|R|SAS|Excel|GTM|KPI|CTR|CVR|CPA|CPC|GMV|UV|ROI|KOL|DCF|M&A|NLP|CNN|U-Net|FastAPI|React|Tableau|Power BI)\b/i.test(text)) score += 110;
+    if (/\b(CTR|CVR|CPA|CPC|GMV|ROI)\b/i.test(text)) score += 90;
+    if (/\b(model|analytics|analysis|measurement|strategy|research|pipeline|valuation|segmentation|survival|causal|stakeholder|experiment|testing|attribution|forecast|dashboard|collaboration|coordination|recommendation|classification|campaign|content|workflow|automation|positioning|personas?|journeys?|launch|planning|performance|optimization|creator|audience|reporting)\b/i.test(text)) score += 70;
+    return score;
+  }
+
+  function isHighQualityReadMoreCandidate(candidate) {
+    if (!candidate || !candidate.label) return false;
+    var label = candidate.label;
+    var text = String(label || "").trim();
+    var words = text.split(/\s+/).filter(Boolean);
+    var hasMetric = /(?:\d|[$¥%])/.test(text) || /\b(CTR|CVR|CPA|CPC|GMV|UV|KPI|ROI)\b/i.test(text);
+    var hasCapability = /\b(strategy|research|analytics?|analysis|measurement|segmentation|positioning|campaign|content|workflow|automation|testing|reporting|launch|planning|performance|optimization|personas?|journeys?|GTM|go-to-market|KOL|creator|audience|stakeholder|cross-functional|collaboration|coordination)\b/i.test(text);
+
+    if (!text || /undefined|null|signal|evidence/i.test(text)) return false;
+    if (/\b(managers?|teams?|users?|clients?|providers?|people)\b/i.test(text) && !hasCapability) return false;
+    if (!hasMetric && !hasCapability) return false;
+    if (!hasMetric && (words.length < 2 || words.length > 5)) return false;
+    if (text.length > 38) return false;
+    if (!hasMetric && getKeywordMatchCoverage(label, candidate.matchText) < 0.5) return false;
+    return true;
+  }
+
+  function getKeywordMatchCoverage(label, matchText) {
+    var target = normalizeKeywordComparable(matchText);
+    if (!target) return 0;
+    var words = String(label || "").split(/\s+/).filter(function (word) {
+      return !isWeakKeyword(word) && normalizeKeywordComparable(word).length > 2;
+    });
+    if (!words.length) return 1;
+    var hits = words.filter(function (word) {
+      return target.indexOf(normalizeKeywordComparable(word)) !== -1;
+    }).length;
+    return hits / words.length;
+  }
+
+  function isWeakKeyword(value) {
+    var raw = String(value || "");
+    if (/^(AI|R|UI|UX|UV|GMV|CTR|CVR|CPA|CPC|KPI|ROI|KOL|GTM|SQL|SAS|LLM)$/i.test(raw.trim())) return false;
+    if (/\d/.test(raw) && /[%$¥+]|[KMB]\b|[A-Za-z]{2,}/i.test(raw)) return false;
+    var text = raw.toLowerCase().replace(/[^a-z0-9]+/g, "");
+    var stop = {
+      a: true, an: true, and: true, the: true, for: true, with: true, from: true,
+      into: true, using: true, across: true, through: true, that: true, this: true,
+      such: true, including: true, developed: true, built: true, created: true,
+      conducted: true, performed: true, implemented: true, designed: true,
+      analyzed: true, supported: true, optimized: true, improved: true, collaborated: true,
+      led: true, leading: true, work: true, team: true, project: true, role: true,
+      responsibilities: true, experience: true, results: true, data: true
+    };
+    return !text || stop[text] || text.length < 3;
+  }
+
+  function areKeywordsRedundant(a, b) {
+    if (!a || !b) return true;
+    if (a.normalized === b.normalized) return true;
+    if (a.normalized.indexOf(b.normalized) !== -1 || b.normalized.indexOf(a.normalized) !== -1) return true;
+    return false;
+  }
+
+  function areKeywordLabelsRedundant(a, b) {
+    var left = normalizeKeywordComparable(a);
+    var right = normalizeKeywordComparable(b);
+    return left && right && (left === right || left.indexOf(right) !== -1 || right.indexOf(left) !== -1);
+  }
+
+  function findBestMatchText(text, query) {
+    var direct = findTextMatch(text, query);
+    if (direct) return text.slice(direct.start, direct.end);
+
+    var words = String(query || "").split(/\s+/).filter(Boolean).sort(function (a, b) {
+      return b.length - a.length;
+    });
+    for (var i = 0; i < words.length; i += 1) {
+      if (isWeakKeyword(words[i])) continue;
+      var match = findTextMatch(text, words[i]);
+      if (match) return text.slice(match.start, match.end);
+    }
+    return "";
+  }
+
+  function findAdjacentKeywordMatch(text, matches) {
+    var selected = selectReadMoreKeywords((matches || []).map(function (label, index) {
+      return {
+        raw: label,
+        label: polishKeywordLabel(label),
+        matchText: findBestMatchText(text, label),
+        normalized: normalizeKeywordComparable(label),
+        score: 1000 - index * 20,
+        source: "jd"
+      };
+    }));
+    if (!selected.length) return null;
+    return {
+      keyword: selected.map(function (candidate) { return candidate.label; }).join(" + "),
+      matchText: selected[0].matchText || selected[0].raw
+    };
+  }
+
+  function renderExpandedBulletText(bullet, expId, startIndex) {
+    var text = bullet.text || "";
+    var tokens = getBulletTokens(bullet);
+    if (!tokens.length) return '<span>' + escapeHtml(text) + '</span>';
+    var matches = tokens.map(function (token, index) {
+      return {
+        token: token,
+        index: startIndex + index,
+        match: findTextMatch(text, token.matchText || token.keyword)
+      };
+    }).filter(function (entry) {
+      return entry.match;
+    }).sort(function (a, b) {
+      return a.match.start - b.match.start;
+    });
+
+    if (!matches.length) {
+      return tokens.map(function (token, index) {
+        return '<span class="experience-expanded-keyword" data-expanded-keyword="' + expId + '" data-keyword-index="' + (startIndex + index) + '">' + escapeHtml(token.keyword) + '</span>';
+      }).join(" ") + ' <span>' + escapeHtml(text) + '</span>';
+    }
+
+    var html = "";
+    var cursor = 0;
+    matches.forEach(function (entry) {
+      if (entry.match.start < cursor) return;
+      html += '<span>' + escapeHtml(text.slice(cursor, entry.match.start)) + '</span>';
+      html += '<span class="experience-expanded-keyword" data-expanded-keyword="' + expId + '" data-keyword-index="' + entry.index + '">' + escapeHtml(entry.token.keyword) + '</span>';
+      cursor = entry.match.end;
+    });
+    html += '<span>' + escapeHtml(text.slice(cursor)) + '</span>';
+    return html;
+  }
+
+  function findTextMatch(text, query) {
+    var source = String(text || "");
+    var needle = String(query || "").trim();
+    if (!source || !needle) return null;
+
+    if (normalizeKeywordComparable(needle).length <= 2) {
+      return findShortTokenMatch(source, needle);
+    }
+
+    var direct = source.toLowerCase().indexOf(needle.toLowerCase());
+    if (direct !== -1) return { start: direct, end: direct + needle.length };
+
+    return findNormalizedTextMatch(source, needle);
+  }
+
+  function findShortTokenMatch(text, query) {
+    var normalized = normalizeKeywordComparable(query);
+    if (!normalized) return null;
+
+    var pattern = new RegExp("(^|[^A-Za-z0-9])(" + escapeRegex(query) + ")(?=$|[^A-Za-z0-9])", "i");
+    var match = pattern.exec(text);
+    if (!match) return null;
+
+    var start = match.index + match[1].length;
+    return { start: start, end: start + match[2].length };
+  }
+
+  function findNormalizedTextMatch(text, query) {
+    var source = buildComparableIndex(text);
+    var needle = normalizeKeywordComparable(query);
+    if (!needle) return null;
+
+    var start = source.normalized.indexOf(needle);
+    if (start === -1) return null;
+
+    var end = start + needle.length - 1;
+    return {
+      start: source.map[start],
+      end: source.map[end] + 1
+    };
+  }
+
+  function buildComparableIndex(text) {
+    var normalized = "";
+    var map = [];
+    String(text || "").split("").forEach(function (char, index) {
+      if (!/[A-Za-z0-9]/.test(char)) return;
+      normalized += char.toLowerCase();
+      map.push(index);
+    });
+    return { normalized: normalized, map: map };
+  }
+
+  function normalizeKeywordComparable(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
+
+  function escapeRegex(value) {
+    return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function polishKeywordLabel(value) {
+    var text = String(value || "")
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    var acronym = {
+      ai: true, ats: true, auc: true, cnn: true, cox: true, dcf: true,
+      ehr: true, etl: true, gee: true, git: true, html: true, iou: true,
+      cpa: true, cpc: true, ctr: true, cvr: true, gmv: true,
+      jd: true, kg: true, kol: true, kpi: true, lbo: true, llm: true, mna: true, nd2: true,
+      nlp: true, png: true, pr: true, qc: true, rag: true, redcap: true,
+      roc: true, roi: true, sas: true, sql: true, ui: true, unet: true, uv: true, ux: true,
+      vte: true
+    };
+
+    text = text.split(" ").map(function (word) {
+      var lower = word.toLowerCase();
+      if (acronym[lower]) return word.toUpperCase();
+      if (/^[A-Z0-9.+/]+$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(" ");
+
+    text = text
+      .replace(/\bKaplan Meier\b/g, "Kaplan-Meier")
+      .replace(/\bMed SAM\b/g, "Med-SAM")
+      .replace(/\bDeepLabv3\b/g, "DeepLabV3")
+      .replace(/\bQ Learning\b/g, "Q-learning");
+
+    if (text.length <= 28) return text;
+    return text.slice(0, 28).replace(/\s+\S*$/, "").trim() || text.slice(0, 28).trim();
+  }
+
+  function toggleExperienceDrawer(item, drawer) {
+    var opening = !drawer.open;
+    if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      drawer.open = opening;
+      item.classList.toggle("is-detail-open", opening);
+      return;
+    }
+
+    animateExperienceKeywords(item, drawer, opening);
+  }
+
+  function animateExperienceKeywords(item, drawer, opening) {
+    var sourceTokens = Array.prototype.slice.call(item.querySelectorAll(".exp-keyword-token"));
+    var targetTokens = Array.prototype.slice.call(drawer.querySelectorAll(".experience-expanded-keyword"));
+
+    if (!sourceTokens.length || !targetTokens.length) {
+      drawer.open = opening;
+      item.classList.toggle("is-detail-open", opening);
+      return;
+    }
+
+    var fromTokens;
+    var toTokens;
+
+    if (opening) {
+      fromTokens = sourceTokens;
+      drawer.open = true;
+      item.classList.add("is-detail-open");
+      toTokens = targetTokens;
+    } else {
+      fromTokens = targetTokens;
+      toTokens = sourceTokens;
+    }
+
+    requestAnimationFrame(function () {
+      var flights = [];
+      fromTokens.forEach(function (fromToken, index) {
+        var toToken = toTokens[index];
+        if (!toToken) return;
+
+        var fromRect = fromToken.getBoundingClientRect();
+        var toRect = toToken.getBoundingClientRect();
+        var clone = fromToken.cloneNode(true);
+        clone.className = "experience-keyword-flight " + (clone.className || "");
+        clone.style.position = "fixed";
+        clone.style.left = fromRect.left + "px";
+        clone.style.top = fromRect.top + "px";
+        clone.style.width = fromRect.width + "px";
+        clone.style.height = fromRect.height + "px";
+        clone.style.zIndex = "10030";
+        clone.style.pointerEvents = "none";
+        document.body.appendChild(clone);
+        flights.push({ clone: clone, rect: toRect });
+      });
+
+      sourceTokens.concat(targetTokens).forEach(function (token) {
+        token.style.visibility = "hidden";
+      });
+
+      var remaining = flights.length;
+      if (!remaining) {
+        finishExperienceKeywordAnimation();
+        return;
+      }
+
+      flights.forEach(function (flight, index) {
+        window.gsap.to(flight.clone, Object.assign(buildKeywordMotion(opening, index, flight.rect), {
+          onComplete: function () {
+            flight.clone.remove();
+            remaining -= 1;
+            if (!remaining) {
+              finishExperienceKeywordAnimation();
+            }
+          }
+        }));
+      });
+
+      function finishExperienceKeywordAnimation() {
+        sourceTokens.concat(targetTokens).forEach(function (token) {
+          token.style.visibility = "";
+        });
+
+        if (!opening) {
+          drawer.open = false;
+          item.classList.remove("is-detail-open");
+        }
+      }
+    });
+  }
+
+  function buildKeywordMotion(opening, index, rect) {
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      scale: opening ? 1.03 : 0.98,
+      duration: 0.42 + index * 0.025,
+      ease: "power2.inOut"
+    };
+  }
+
+  function renderExperienceSkillStrip(data, item, expId) {
+    if (!ns.skills || !ns.skills.getExperienceSkillItems || !ns.skills.renderSkillPills) return "";
+    var items = ns.skills.getExperienceSkillItems(data, item, expId);
+    var highlights = data.experienceSkillHighlights && data.experienceSkillHighlights[expId];
+
+    if (Array.isArray(highlights) && highlights.length) {
+      var byLabel = {};
+      items.forEach(function (entry) {
+        byLabel[normalizeSkillLabel(entry.label)] = entry;
+      });
+      items = highlights.map(function (label) {
+        var entry = byLabel[normalizeSkillLabel(label)];
+        if (entry) return Object.assign({}, entry, { label: label });
+        return {
+          key: "custom-" + expId + "-" + normalizeSkillLabel(label),
+          group: "custom",
+          label: label,
+          item: { label: label, color: "#4f46e5" }
+        };
+      });
+      return ns.skills.renderSkillPills(items, { limit: highlights.length, hideOverflow: true, hideIcons: true });
+    }
+
+    return ns.skills.renderSkillPills(items, { limit: 8 });
+  }
+
+  function normalizeSkillLabel(value) {
+    return String(value || "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  function stripTags(value) {
+    return String(value || "").replace(/<[^>]*>/g, "");
+  }
+
+  function renderExperienceContext(data, item) {
+    if (data.skillLayout && data.skillLayout.hideExperienceContext) return "";
+
+    var skills = Array.isArray(item.contextualSkills) ? item.contextualSkills : [];
+    var tools = Array.isArray(item.contextualTools) ? item.contextualTools : [];
+    if (!skills.length && !tools.length) return "";
+
+    return '<div class="experience-context-grid">' +
+      (skills.length
+        ? '<section class="experience-context-card">' +
+            '<span class="experience-projects-label">Analyst skills</span>' +
+            '<div class="quant-grid">' +
+              skills.map(function (skill) {
+                return '<span class="skill-token">' + skill + '</span>';
+              }).join("") +
+            '</div>' +
+          '</section>'
+        : "") +
+      (tools.length
+        ? '<section class="experience-context-card">' +
+            '<span class="experience-projects-label">Tools and outputs</span>' +
+            '<div class="tag-list">' +
+              tools.map(function (tool) {
+                return '<span class="skill-token">' + (tool.label || tool.id || tool) + '</span>';
+              }).join("") +
+            '</div>' +
+          '</section>'
+        : "") +
+    '</div>';
+  }
+
+  function renderExperienceProjects(data, item) {
+    if (!Array.isArray(item.relatedProjects) || !item.relatedProjects.length) return "";
+    var projectById = {};
+    data.projects.forEach(function (project) {
+      projectById[project.id] = project;
+    });
+
+    var chips = item.relatedProjects
+      .map(function (projectId) { return projectById[projectId]; })
+      .filter(Boolean)
+      .slice(0, 4)
+      .map(function (project) {
+        return '<span class="experience-project-chip">' + project.navTitle + '</span>';
+      })
+      .join("");
+
+    if (!chips) return "";
+    return '<div class="experience-projects">' +
+      '<span class="experience-projects-label">Related projects</span>' +
+      '<div class="experience-project-chip-row">' + chips + '</div>' +
+    '</div>';
+  }
+
+  /* ── Page 4: Education ─────────────────────── */
+
+  function renderEducation(data) {
+    var section = document.querySelector(".edu-section");
+    var list = document.getElementById("education-list");
+    if (!list) return;
+    section.hidden = !Array.isArray(data.education) || !data.education.length;
+    list.innerHTML = data.education
+      .map(function (item) {
+        return '<article class="education-item">' +
+          '<div class="education-head">' +
+            renderOrgLogo(item.school) +
+            '<div>' +
+              '<h3>' + item.degree + '</h3>' +
+              '<p>' + item.school + '</p>' +
+              '<p class="muted-line">' + item.dates + (item.gpa ? " \u2022 GPA: " + item.gpa : "") + '</p>' +
+              '<p class="muted-line">' + item.note + '</p>' +
+            '</div>' +
+          '</div>' +
+        '</article>';
+      })
+      .join("");
+  }
+
+  function renderAwards(data) {
+    var section = document.querySelector(".awards-section");
+    var list = document.getElementById("awards-list");
+    if (!list) return;
+    section.hidden = !Array.isArray(data.awards) || !data.awards.length;
+    list.innerHTML = data.awards
+      .map(function (a) {
+        return '<div class="award-card">' +
+          '<div>' +
+            '<span class="award-title">' + a.title + '</span>' +
+            '<span class="award-org"> \u2014 ' + a.org + '</span>' +
+          '</div>' +
+          '<span class="award-amount">' + a.amount + '</span>' +
+        '</div>';
+      })
+      .join("");
+  }
+
+  function renderPublications(data) {
+    var section = document.querySelector(".pub-section");
+    var list = document.getElementById("publications-list");
+    if (!list) return;
+    section.hidden = !Array.isArray(data.publications) || !data.publications.length;
+    list.innerHTML = data.publications
+      .map(function (pub) {
+        return '<div class="pub-item">' +
+          '<div class="pub-title">' + pub.title + '</div>' +
+          '<div class="pub-authors">' + pub.authors + '</div>' +
+          '<div class="pub-detail">' + pub.journal + ' \u2014 ' + pub.detail + '</div>' +
+        '</div>';
+      })
+      .join("");
+  }
+
+  function renderCoursework(data) {
+    var section = document.getElementById("coursework-section");
+    var list = document.getElementById("coursework-list");
+    if (!section || !list) return;
+
+    var coursework = Array.isArray(data.coursework) ? data.coursework : [];
+    section.hidden = coursework.length === 0;
+    list.innerHTML = coursework
+      .map(function (item) {
+        return '<article class="coursework-item">' +
+          '<h3>' + item.title + '</h3>' +
+          '<ul class="compact-list">' +
+            (item.bullets || []).map(function (b) { return '<li>' + b + '</li>'; }).join("") +
+          '</ul>' +
+        '</article>';
+      })
+      .join("");
+  }
+
+  function renderProfileMaterials(data) {
+    var section = document.getElementById("profile-materials-section");
+    var grid = document.getElementById("profile-materials-grid");
+    if (!section || !grid) return;
+
+    var cards = [];
+    var certs = Array.isArray(data.licensesCertifications) ? data.licensesCertifications : [];
+    var skillDetails = Array.isArray(data.technicalSkillDetails) ? data.technicalSkillDetails : [];
+    var keywordGroups = Array.isArray(data.analystKeywordGroups) ? data.analystKeywordGroups : [];
+    var links = Array.isArray(data.links) ? data.links : [];
+    var atsProfile = data.atsProfile || data.atsSignals || null;
+    var atsKeywords = buildAtsKeywords(data);
+    var atsOnly = data.profileMaterialsMode === "ats-only";
+    var visibleCardCount = 0;
+
+    if (certs.length && !atsOnly) {
+      cards.push('<article class="profile-material-card">' +
+        '<h3>Licenses & Certifications</h3>' +
+        '<div class="tag-list profile-material-tags">' +
+          certs.map(function (item) {
+            return ns.icons.renderTechChip(item, false);
+          }).join("") +
+        '</div>' +
+      '</article>');
+      visibleCardCount += 1;
+    }
+
+    if (skillDetails.length && !atsOnly) {
+      cards.push('<article class="profile-material-card">' +
+        '<h3>Technical Skill Details</h3>' +
+        '<div class="quant-grid profile-material-tags">' +
+          skillDetails.map(function (item) {
+            return '<span class="quant-tag">' + item + '</span>';
+          }).join("") +
+        '</div>' +
+      '</article>');
+      visibleCardCount += 1;
+    }
+
+    if (keywordGroups.length && !atsOnly) {
+      cards.push('<article class="profile-material-card profile-material-card-wide">' +
+        '<h3>Analyst Keyword Groups</h3>' +
+        '<div class="keyword-group-grid">' +
+          keywordGroups.map(function (group) {
+            return '<section class="keyword-group-card">' +
+              '<h4>' + group.title + '</h4>' +
+              '<p>' + (group.keywords || []).join(" · ") + '</p>' +
+            '</section>';
+          }).join("") +
+        '</div>' +
+      '</article>');
+      visibleCardCount += 1;
+    }
+
+    if (links.length) {
+      cards.push('<article class="profile-material-card">' +
+        '<h3>Source Links</h3>' +
+        '<div class="project-artifact-row profile-material-links">' +
+          links.map(function (link) {
+            return '<a class="project-artifact-link" href="' + link.href + '" target="_blank" rel="noreferrer">' +
+              '<span>' + link.label + '</span>' +
+              '<small>' + link.value + '</small>' +
+            '</a>';
+          }).join("") +
+        '</div>' +
+      '</article>');
+      visibleCardCount += 1;
+    }
+
+    if (atsProfile) {
+      cards.push(renderAtsReadinessCard(atsProfile));
+      visibleCardCount += 1;
+    }
+
+    if (atsKeywords.length) {
+      cards.push('<article class="profile-material-card profile-material-card-wide ats-module">' +
+        '<h3>ATS Signal Layer</h3>' +
+        '<p>' + atsKeywords.join(" · ") + '</p>' +
+      '</article>');
+    }
+
+    section.hidden = cards.length === 0;
+    section.classList.toggle("is-ats-hidden-only", cards.length > 0 && visibleCardCount === 0);
+    grid.innerHTML = cards.join("");
+  }
+
+  function renderAtsReadinessCard(atsProfile) {
+    var keywords = Array.isArray(atsProfile.targetKeywords) ? atsProfile.targetKeywords : [];
+    var parseSignals = Array.isArray(atsProfile.parseSignals) ? atsProfile.parseSignals : [];
+    var riskFlags = Array.isArray(atsProfile.riskFlags) ? atsProfile.riskFlags : [];
+    var split = atsProfile.split || atsProfile.cohortRole || "";
+    var role = atsProfile.targetRole || atsProfile.roleFamily || "";
+    var scoringUse = atsProfile.scoringUse || "";
+
+    return '<article class="profile-material-card profile-material-card-wide ats-readiness-module">' +
+      '<div class="ats-readiness-head">' +
+        '<h3>ATS Readiness</h3>' +
+        (split ? '<span>' + stripTags(split) + '</span>' : "") +
+      '</div>' +
+      '<div class="ats-readiness-grid">' +
+        renderAtsReadinessBlock("Target", role || "Role-specific keyword scan") +
+        renderAtsReadinessBlock("Use", scoringUse || "ATS calibration input") +
+      '</div>' +
+      (keywords.length ? '<div class="ats-chip-row">' + keywords.slice(0, 16).map(renderAtsChip).join("") + '</div>' : "") +
+      (parseSignals.length || riskFlags.length ? '<div class="ats-note-grid">' +
+        (parseSignals.length ? renderAtsNoteList("Parse signals", parseSignals) : "") +
+        (riskFlags.length ? renderAtsNoteList("Watch items", riskFlags) : "") +
+      '</div>' : "") +
+    '</article>';
+  }
+
+  function renderAtsReadinessBlock(label, value) {
+    return '<section class="ats-readiness-block">' +
+      '<span>' + label + '</span>' +
+      '<strong>' + stripTags(value) + '</strong>' +
+    '</section>';
+  }
+
+  function renderAtsChip(value) {
+    return '<span class="ats-chip">' + stripTags(value) + '</span>';
+  }
+
+  function renderAtsNoteList(title, items) {
+    return '<section class="ats-note-list">' +
+      '<h4>' + title + '</h4>' +
+      '<ul>' + items.slice(0, 4).map(function (item) {
+        return '<li>' + stripTags(item) + '</li>';
+      }).join("") + '</ul>' +
+    '</section>';
+  }
+
+  function buildAtsKeywords(data) {
+    var keywords = [];
+
+    function push(value) {
+      if (!value) return;
+      var text = String(value).trim();
+      if (!text || keywords.indexOf(text) !== -1) return;
+      keywords.push(text);
+    }
+
+    (data.quantToolkit || []).forEach(function (item) { push(item.label); });
+    (data.stack || []).forEach(function (item) { push(item.label); });
+    (data.analyticalSkills || []).forEach(function (item) { push(item.label); });
+    (data.licensesCertifications || []).forEach(function (item) { push(item.label); });
+    (data.technicalSkillDetails || []).forEach(push);
+    (data.analystKeywordGroups || []).forEach(function (group) {
+      push(group.title);
+      (group.keywords || []).forEach(push);
+    });
+    var atsProfile = data.atsProfile || data.atsSignals || {};
+    (atsProfile.targetKeywords || []).forEach(push);
+    (atsProfile.parseSignals || []).forEach(push);
+    (data.projects || []).forEach(function (project) {
+      push(project.title);
+      push(project.navTitle);
+    });
+
+    return keywords.slice(0, 220);
+  }
+
+  /* ── GSAP scroll-driven page transitions ──── */
+
+  function setupScrollAnimations(state) {
+    if (!window.gsap || !window.ScrollTrigger) {
+      document.querySelectorAll(".page-dot").forEach(function (dot) {
+        dot.addEventListener("click", function () {
+          var target = document.getElementById("page-" + dot.dataset.target);
+          if (target) target.scrollIntoView({ behavior: "smooth" });
+        });
+      });
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    var pages = document.querySelectorAll(".page-section");
+    var dots = document.querySelectorAll(".page-dot");
+
+    pages.forEach(function (page, i) {
+      /* Fade-in entrance for each page */
+      gsap.from(page.querySelector(".page-inner"), {
+        scrollTrigger: {
+          trigger: page,
+          start: "top 80%",
+          end: "top 30%",
+          scrub: 1
+        },
+        y: 60,
+        opacity: 0,
+        duration: 1
+      });
+
+      /* Track which page is current */
+      ScrollTrigger.create({
+        trigger: page,
+        start: "top center",
+        end: "bottom center",
+        onEnter: function () { setActivePage(i + 1, state, dots); },
+        onEnterBack: function () { setActivePage(i + 1, state, dots); }
+      });
+    });
+
+    /* Dot navigation */
+    dots.forEach(function (dot) {
+      dot.addEventListener("click", function () {
+        var target = document.getElementById("page-" + dot.dataset.target);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
+      });
+    });
+
+    /* Update Three.js camera based on scroll */
+    ScrollTrigger.create({
+      trigger: document.body,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: function (self) {
+        if (ns.setScrollProgress) {
+          ns.setScrollProgress(self.progress);
+        }
+      }
+    });
+  }
+
+  function detectCurrentPage() {
+    var pages = document.querySelectorAll(".page-section");
+    var viewportCenter = window.innerHeight / 2;
+    var fallbackPage = 1;
+    var smallestDistance = Infinity;
+
+    pages.forEach(function (page, index) {
+      var rect = page.getBoundingClientRect();
+      var pageNum = Number(page.dataset.page || index + 1);
+      var pageCenter = rect.top + rect.height / 2;
+      var distance = Math.abs(pageCenter - viewportCenter);
+
+      if (rect.top <= viewportCenter && rect.bottom >= viewportCenter) {
+        fallbackPage = pageNum;
+        smallestDistance = -1;
+        return;
+      }
+
+      if (smallestDistance !== -1 && distance < smallestDistance) {
+        smallestDistance = distance;
+        fallbackPage = pageNum;
+      }
+    });
+
+    return fallbackPage;
+  }
+
+  function setActivePage(pageNum, state, dots) {
+    var previousPage = state.currentPage;
+    var pageChanged = state.currentPage !== pageNum;
+    state.currentPage = pageNum;
+    document.body.setAttribute("data-current-page", String(pageNum));
+    dots.forEach(function (d) {
+      d.classList.toggle("active", Number(d.dataset.target) === pageNum);
+    });
+
+    /* Dispatch custom event for skill panel positioning */
+    if (pageChanged) {
+      window.dispatchEvent(new CustomEvent("pagechange", { detail: { page: pageNum, previousPage: previousPage } }));
+    }
+  }
+
+  ns.pages = {
+    renderPage1: renderPage1,
+    renderExperience: renderExperience,
+    renderEducation: renderEducation,
+    renderAwards: renderAwards,
+    renderPublications: renderPublications,
+    renderCoursework: renderCoursework,
+    renderProfileMaterials: renderProfileMaterials,
+    setupScrollAnimations: setupScrollAnimations,
+    detectCurrentPage: detectCurrentPage
+  };
+})();

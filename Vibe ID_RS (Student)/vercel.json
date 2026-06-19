@@ -2,7 +2,17 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "/AI_Resume_V4_Ruihang/",
+      "destination": "/AI_Resume_User_V7_Ruihang/",
+      "permanent": false
+    },
+    {
+      "source": "/v7",
+      "destination": "/AI_Resume_User_V7_Ruihang/",
+      "permanent": false
+    },
+    {
+      "source": "/account-strategist",
+      "destination": "/AI_Resume_User_V7_Ruihang/",
       "permanent": false
     }
   ]
