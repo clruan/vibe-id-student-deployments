@@ -1,0 +1,77 @@
+[
+  {
+    "id": "product-analytics-data-scientist",
+    "title": "Product Analytics Data Scientist",
+    "role": "Data Scientist - Product and Platform Analytics",
+    "html": "html/jialing-chen-product-analytics-data-scientist.html",
+    "payload": "payloads/jialing-chen-product-analytics-data-scientist.json",
+    "selectedProjects": [
+      "ai-design-strategy",
+      "deep-imaging",
+      "nd2-agent",
+      "copd-som",
+      "market-pulse",
+      "lumina-ai-product"
+    ]
+  },
+  {
+    "id": "ai-product-manager",
+    "title": "AI Product Manager",
+    "role": "AI Product Manager / Product Analyst",
+    "html": "html/jialing-chen-ai-product-manager.html",
+    "payload": "payloads/jialing-chen-ai-product-manager.json",
+    "selectedProjects": [
+      "ai-design-strategy",
+      "deep-imaging",
+      "nd2-agent",
+      "copd-som",
+      "market-pulse",
+      "lumina-ai-product"
+    ]
+  },
+  {
+    "id": "clinical-data-scientist",
+    "title": "Clinical Data Scientist",
+    "role": "Clinical Data Scientist / Biostatistics Analyst",
+    "html": "html/jialing-chen-clinical-data-scientist.html",
+    "payload": "payloads/jialing-chen-clinical-data-scientist.json",
+    "selectedProjects": [
+      "ai-design-strategy",
+      "deep-imaging",
+      "nd2-agent",
+      "copd-som",
+      "market-pulse",
+      "lumina-ai-product"
+    ]
+  },
+  {
+    "id": "market-intelligence-analyst",
+    "title": "Market Intelligence Analyst",
+    "role": "Market Intelligence / Investment Research Analyst",
+    "html": "html/jialing-chen-market-intelligence-analyst.html",
+    "payload": "payloads/jialing-chen-market-intelligence-analyst.json",
+    "selectedProjects": [
+      "ai-design-strategy",
+      "deep-imaging",
+      "nd2-agent",
+      "copd-som",
+      "market-pulse",
+      "lumina-ai-product"
+    ]
+  },
+  {
+    "id": "marketing-analytics-strategist",
+    "title": "Marketing Analytics Strategist",
+    "role": "Marketing Analytics / Growth Strategy Analyst",
+    "html": "html/jialing-chen-marketing-analytics-strategist.html",
+    "payload": "payloads/jialing-chen-marketing-analytics-strategist.json",
+    "selectedProjects": [
+      "ai-design-strategy",
+      "deep-imaging",
+      "nd2-agent",
+      "copd-som",
+      "market-pulse",
+      "lumina-ai-product"
+    ]
+  }
+]
