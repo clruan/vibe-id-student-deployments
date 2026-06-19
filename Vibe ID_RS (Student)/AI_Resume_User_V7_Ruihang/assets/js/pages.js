@@ -164,7 +164,7 @@
 
     identity.innerHTML = '<article class="linkedin-profile-card">' +
       '<div class="linkedin-cover" aria-hidden="true">' +
-        '<span>AI Resume</span>' +
+        '<span>Vibe ID</span>' +
       '</div>' +
       '<div class="linkedin-profile-body">' +
         '<div class="linkedin-avatar-row">' +
