@@ -2210,12 +2210,88 @@ body.mode-vip .skill-panels .tech-icon {
   overflow-wrap: anywhere;
 }
 
+.experience-proof-summary {
+  margin-top: 0.68rem;
+  padding-top: 0.72rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.experience-proof-summary > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.experience-proof-summary > summary::-webkit-details-marker {
+  display: none;
+}
+
+.experience-proof-preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.experience-proof-preview .project-skill-strip,
+.experience-proof-preview .experience-project-chip-row {
+  flex-wrap: nowrap;
+  max-height: 2.2rem;
+  margin: 0;
+  overflow: hidden;
+}
+
+.experience-proof-preview .skill-token,
+.experience-proof-preview .project-skill-pill,
+.experience-proof-preview .experience-project-chip {
+  flex: 0 0 auto;
+}
+
+.experience-read-more {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.85rem;
+  padding: 0.34rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.experience-read-more-open {
+  display: none;
+}
+
+.experience-proof-summary[open] .experience-read-more-closed {
+  display: none;
+}
+
+.experience-proof-summary[open] .experience-read-more-open {
+  display: inline;
+}
+
+.experience-proof-expanded {
+  display: grid;
+  gap: 0.78rem;
+  margin-top: 0.78rem;
+}
+
+.experience-proof-expanded .project-skill-strip {
+  margin: 0;
+}
+
 .experience-projects {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 1rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  gap: 0.5rem;
+  padding-top: 0.72rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
 }
 
 .experience-projects-label {
@@ -2250,14 +2326,13 @@ body.mode-vip .skill-panels .tech-icon {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
-  margin-top: 1rem;
 }
 
 .experience-context-card {
   display: grid;
   gap: 0.55rem;
-  padding: 0.85rem;
-  border-radius: 16px;
+  padding: 0.78rem;
+  border-radius: 14px;
   background: rgba(248, 250, 252, 0.9);
   box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
 }
@@ -7922,7 +7997,6 @@ body.mode-vip .skill-panels .tech-icon {
               variant: "experience"
             })
           : "";
-        var relatedProjects = renderExperienceProjects(data, item);
         return '<article class="experience-item" data-exp-id="' + expId + '">' +
           '<div class="experience-head">' +
             '<div class="experience-title-row">' +
@@ -7937,9 +8011,7 @@ body.mode-vip .skill-panels .tech-icon {
           renderExperiencePreview(item) +
           renderExperienceKeywordRail(data, item, expId) +
           renderExperienceDrawer(data, item, expId) +
-          renderExperienceSkillStrip(data, item, expId) +
-          renderExperienceContext(data, item) +
-          relatedProjects +
+          renderExperienceProofBlock(data, item, expId) +
           endorsement +
         '</article>';
       })
@@ -8622,13 +8694,87 @@ body.mode-vip .skill-panels .tech-icon {
     };
   }
 
-  function renderExperienceSkillStrip(data, item, expId) {
+  var EXPERIENCE_PROOF_PREVIEW_LIMIT = 4;
+
+  function renderExperienceProofBlock(data, item, expId) {
+    var preview = renderExperienceProofPreview(data, item, expId);
+    var expanded = renderExperienceSkillStrip(data, item, expId, true) +
+      renderExperienceContext(data, item) +
+      renderExperienceProjects(data, item);
+    var hiddenCount = Math.max(0, countExperienceProofItems(data, item, expId) - EXPERIENCE_PROOF_PREVIEW_LIMIT);
+
+    if (!preview && !expanded) return "";
+    if (!expanded || hiddenCount <= 0) {
+      return '<div class="experience-proof-summary"><div class="experience-proof-preview">' + preview + '</div></div>';
+    }
+
+    return '<details class="experience-proof-summary">' +
+      '<summary>' +
+        '<div class="experience-proof-preview">' + preview + '</div>' +
+        '<span class="experience-read-more" aria-label="Show more experience keywords">' +
+          '<span class="experience-read-more-closed">Read more</span>' +
+          '<span class="experience-read-more-open">Show less</span>' +
+        '</span>' +
+      '</summary>' +
+      '<div class="experience-proof-expanded">' + expanded + '</div>' +
+    '</details>';
+  }
+
+  function renderExperienceProofPreview(data, item, expId) {
+    var skillsHtml = renderExperienceSkillStrip(data, item, expId, false);
+    if (skillsHtml) return skillsHtml;
+
+    var fallback = collectExperienceFallbackLabels(data, item, expId).slice(0, EXPERIENCE_PROOF_PREVIEW_LIMIT);
+    if (!fallback.length) return "";
+    return '<div class="experience-project-chip-row">' + fallback.map(function (label) {
+      return '<span class="experience-project-chip">' + escapeHtml(label) + '</span>';
+    }).join("") + '</div>';
+  }
+
+  function renderExperienceSkillStrip(data, item, expId, expanded) {
     if (!ns.skills || !ns.skills.getExperienceSkillItems || !ns.skills.renderSkillPills) return "";
-    return ns.skills.renderSkillPills(ns.skills.getExperienceSkillItems(data, item, expId), { limit: 8 });
+    return ns.skills.renderSkillPills(ns.skills.getExperienceSkillItems(data, item, expId), {
+      limit: expanded ? 99 : EXPERIENCE_PROOF_PREVIEW_LIMIT,
+      hideOverflow: true
+    });
   }
 
   function stripTags(value) {
     return String(value || "").replace(/<[^>]*>/g, "");
+  }
+
+  function normalizeExperienceProofLabel(value) {
+    return stripTags(value).toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+  }
+
+  function collectExperienceFallbackLabels(data, item, expId) {
+    var labels = [];
+    if (ns.skills && ns.skills.getExperienceSkillItems) {
+      ns.skills.getExperienceSkillItems(data, item, expId).forEach(function (entry) {
+        labels.push(entry.label);
+      });
+    }
+    (Array.isArray(item.contextualSkills) ? item.contextualSkills : []).forEach(function (skill) {
+      labels.push(skill);
+    });
+    (Array.isArray(item.contextualTools) ? item.contextualTools : []).forEach(function (tool) {
+      labels.push(tool.label || tool.id || tool);
+    });
+    getExperienceProjectModels(data, item).forEach(function (project) {
+      labels.push(project.navTitle || project.title);
+    });
+
+    var seen = {};
+    return labels.filter(function (label) {
+      var key = normalizeExperienceProofLabel(label);
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function countExperienceProofItems(data, item, expId) {
+    return collectExperienceFallbackLabels(data, item, expId).length;
   }
 
   function renderExperienceContext(data, item) {
@@ -8644,7 +8790,7 @@ body.mode-vip .skill-panels .tech-icon {
             '<span class="experience-projects-label">Analyst skills</span>' +
             '<div class="quant-grid">' +
               skills.map(function (skill) {
-                return '<span class="skill-token">' + skill + '</span>';
+                return '<span class="skill-token">' + escapeHtml(skill) + '</span>';
               }).join("") +
             '</div>' +
           '</section>'
@@ -8654,7 +8800,7 @@ body.mode-vip .skill-panels .tech-icon {
             '<span class="experience-projects-label">Tools and outputs</span>' +
             '<div class="tag-list">' +
               tools.map(function (tool) {
-                return '<span class="skill-token">' + (tool.label || tool.id || tool) + '</span>';
+                return '<span class="skill-token">' + escapeHtml(tool.label || tool.id || tool) + '</span>';
               }).join("") +
             '</div>' +
           '</section>'
@@ -8662,19 +8808,22 @@ body.mode-vip .skill-panels .tech-icon {
     '</div>';
   }
 
-  function renderExperienceProjects(data, item) {
-    if (!Array.isArray(item.relatedProjects) || !item.relatedProjects.length) return "";
+  function getExperienceProjectModels(data, item) {
+    if (!Array.isArray(item.relatedProjects) || !item.relatedProjects.length) return [];
     var projectById = {};
     data.projects.forEach(function (project) {
       projectById[project.id] = project;
     });
-
-    var chips = item.relatedProjects
+    return item.relatedProjects
       .map(function (projectId) { return projectById[projectId]; })
-      .filter(Boolean)
-      .slice(0, 4)
+      .filter(Boolean);
+  }
+
+  function renderExperienceProjects(data, item) {
+    var chips = getExperienceProjectModels(data, item)
+      .slice(0, 6)
       .map(function (project) {
-        return '<span class="experience-project-chip">' + project.navTitle + '</span>';
+        return '<span class="experience-project-chip">' + escapeHtml(project.navTitle || project.title) + '</span>';
       })
       .join("");
 
