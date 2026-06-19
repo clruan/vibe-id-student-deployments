@@ -2629,6 +2629,14 @@ body.mode-vip .skill-panels .tech-icon {
   margin: 1rem 0;
 }
 
+.source-story-grid-evidence {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.source-story-card-evidence {
+  border-left: 3px solid var(--project-accent, var(--accent));
+}
+
 .checkdemo-aaron-grid {
   display: grid;
   gap: 1.1rem;

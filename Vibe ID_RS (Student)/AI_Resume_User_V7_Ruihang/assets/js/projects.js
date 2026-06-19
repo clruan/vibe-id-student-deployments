@@ -334,8 +334,9 @@
         (project.tagline ? '<p class="project-tagline">' + project.tagline + '</p>' : "") +
       '</header>' +
       renderOriginalProjectMeta(data, project, artifactLinks) +
-      renderSourceStory(data, project) +
+      renderProjectEvidence(project) +
       visualEvidence +
+      renderSourceContext(data, project) +
     '</article>';
   }
 
@@ -478,14 +479,26 @@
   function renderSourceStory(data, project) {
     if (isAaronProfile(data)) return "";
 
+    var context = [
+      renderProblemStatement(project),
+      renderApproach(data, project)
+    ].filter(Boolean);
+    var evidence = renderProjectEvidence(project);
+
+    if (!context.length && !evidence) return "";
+    return (context.length ? '<div class="source-story-grid">' + context.join("") + '</div>' : "") + evidence;
+  }
+
+  function renderSourceContext(data, project) {
+    if (isAaronProfile(data)) return "";
+
     var blocks = [
       renderProblemStatement(project),
-      renderApproach(data, project),
-      renderResult(project)
+      renderApproach(data, project)
     ].filter(Boolean);
 
     if (!blocks.length) return "";
-    return '<div class="source-story-grid">' + blocks.join("") + '</div>';
+    return '<div class="source-story-grid source-story-grid-context">' + blocks.join("") + '</div>';
   }
 
   function renderProblemStatement(project) {
@@ -520,16 +533,18 @@
     '</section>';
   }
 
-  function renderResult(project) {
+  function renderProjectEvidence(project) {
     var r = Array.isArray(project.result) ? project.result : [];
     if (!r.length) return "";
 
-    return '<section class="source-story-card source-story-card-dark">' +
-      '<h4>Result</h4>' +
+    return '<div class="source-story-grid source-story-grid-evidence">' +
+      '<section class="source-story-card source-story-card-dark source-story-card-wide source-story-card-evidence">' +
+      '<h4>Evidence</h4>' +
       '<ul class="compact-list">' +
         r.map(function (item) { return '<li>' + item + '</li>'; }).join("") +
       '</ul>' +
-    '</section>';
+      '</section>' +
+    '</div>';
   }
 
   function renderScreenshotStrip(project, title, actions) {
